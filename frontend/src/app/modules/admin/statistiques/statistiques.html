@@ -1,1 +1,144 @@
-<p>statistiques works!</p>
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Rapports &amp; Statistiques</h1>
+      <p class="page-subtitle">Suivi des plaintes, incidents et performance des collectes</p>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+  } @else {
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-green">
+        <span class="kpi-value">{{ stats.totalTournees }}</span>
+        <span class="kpi-label">Tournées totales</span>
+        <span class="kpi-sub">{{ stats.tourneesTerminees }} terminées · {{ stats.tourneesEnCours }} en cours</span>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <span class="kpi-value">{{ stats.totalPlaintes }}</span>
+        <span class="kpi-label">Plaintes reçues</span>
+        <span class="kpi-sub">{{ stats.plaintesResolues }} résolues · {{ stats.plaintesEnAttente }} en attente</span>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <span class="kpi-value">{{ stats.totalIncidents }}</span>
+        <span class="kpi-label">Incidents signalés</span>
+        <span class="kpi-sub">{{ stats.incidentsGraves }} graves ou critiques</span>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <span class="kpi-value">{{ pct(stats.tourneesTerminees, stats.totalTournees) }}%</span>
+        <span class="kpi-label">Taux de complétion</span>
+        <span class="kpi-sub">Tournées terminées / total</span>
+      </div>
+    </div>
+
+    <!-- Barres de progression -->
+    <div class="progress-section">
+      <div class="progress-card">
+        <h3>Répartition des plaintes</h3>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>Résolues</span>
+            <span>{{ stats.plaintesResolues }} ({{ pct(stats.plaintesResolues, stats.totalPlaintes) }}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-green" [style.width.%]="pct(stats.plaintesResolues, stats.totalPlaintes)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>En cours</span>
+            <span>{{ stats.plaintesEnCours }} ({{ pct(stats.plaintesEnCours, stats.totalPlaintes) }}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-blue" [style.width.%]="pct(stats.plaintesEnCours, stats.totalPlaintes)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>En attente</span>
+            <span>{{ stats.plaintesEnAttente }} ({{ pct(stats.plaintesEnAttente, stats.totalPlaintes) }}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-orange" [style.width.%]="pct(stats.plaintesEnAttente, stats.totalPlaintes)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <h3>Statut des tournées</h3>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>Terminées</span>
+            <span>{{ stats.tourneesTerminees }} ({{ pct(stats.tourneesTerminees, stats.totalTournees) }}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-green" [style.width.%]="pct(stats.tourneesTerminees, stats.totalTournees)"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>En cours</span>
+            <span>{{ stats.tourneesEnCours }} ({{ pct(stats.tourneesEnCours, stats.totalTournees) }}%)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-blue" [style.width.%]="pct(stats.tourneesEnCours, stats.totalTournees)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableaux -->
+    <div class="tables-grid">
+
+      <!-- Dernières plaintes -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Dernières plaintes</h2>
+        </div>
+        @if (plaintes.length === 0) {
+          <div class="empty-state"><p>Aucune plainte.</p></div>
+        } @else {
+          <table class="table">
+            <thead><tr><th>Sujet</th><th>Date</th><th>Statut</th></tr></thead>
+            <tbody>
+              @for (p of plaintes.slice(0, 8); track p._id) {
+                <tr>
+                  <td class="td-truncate">{{ p.sujet }}</td>
+                  <td>{{ formatDate(p.createdAt) }}</td>
+                  <td><span [class]="plainteClass(p.statut)">{{ p.statut }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <!-- Derniers incidents -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Derniers incidents</h2>
+        </div>
+        @if (incidents.length === 0) {
+          <div class="empty-state"><p>Aucun incident.</p></div>
+        } @else {
+          <table class="table">
+            <thead><tr><th>Description</th><th>Gravité</th><th>Date</th></tr></thead>
+            <tbody>
+              @for (i of incidents.slice(0, 8); track i._id) {
+                <tr>
+                  <td class="td-truncate">{{ i.description }}</td>
+                  <td><span [class]="graviteClass(i.gravite)">{{ i.gravite || '—' }}</span></td>
+                  <td>{{ formatDate(i.createdAt) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+    </div>
+  }
+</div>

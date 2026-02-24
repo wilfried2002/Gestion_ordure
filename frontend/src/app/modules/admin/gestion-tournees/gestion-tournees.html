@@ -1,1 +1,148 @@
-<p>gestion-tournees works!</p>
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Planification des tournées</h1>
+      <p class="page-subtitle">Organisation des collectes par zone et équipe</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+      </svg>
+      Nouvelle tournée
+    </button>
+  </div>
+
+  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
+  @if (errorMsg && !showModal) { <div class="alert alert-danger">{{ errorMsg }}</div> }
+
+  <!-- Filtres -->
+  <div class="filters-bar">
+    <div class="search-bar" style="flex:1">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+      </svg>
+      <input type="text" [(ngModel)]="search" (ngModelChange)="applyFilter()" placeholder="Rechercher zone, équipe…">
+    </div>
+    <select [(ngModel)]="filterStatut" (ngModelChange)="applyFilter()" class="filter-select">
+      <option value="">Tous les statuts</option>
+      @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+  } @else if (filtered.length === 0) {
+    <div class="empty-state">
+      <p>Aucune tournée trouvée.</p>
+      <button class="btn btn-primary btn-sm" (click)="openCreate()">Planifier la première</button>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Zone</th>
+            <th>Équipe</th>
+            <th>Véhicule</th>
+            <th>Horaires</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of filtered; track t._id) {
+            <tr>
+              <td><strong>{{ formatDate(t.date) }}</strong></td>
+              <td>{{ t.zoneId?.nom ?? '—' }}</td>
+              <td>{{ t.equipeId?.nom ?? '—' }}</td>
+              <td>{{ t.vehiculeId?.immatriculation ?? '—' }}</td>
+              <td>
+                @if (t.heureDebut || t.heureFin) {
+                  <span class="horaire">{{ t.heureDebut || '?' }} – {{ t.heureFin || '?' }}</span>
+                } @else { — }
+              </td>
+              <td><span [class]="statutClass(t.statut)">{{ t.statut }}</span></td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn btn-outline btn-sm" (click)="openEdit(t)">Modifier</button>
+                  <button class="btn btn-danger btn-sm" (click)="delete(t)">Supprimer</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showModal) {
+  <div class="modal-backdrop" (click)="closeModal()"></div>
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>{{ isEdit ? 'Modifier la tournée' : 'Planifier une tournée' }}</h2>
+      <button class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      @if (errorMsg) { <div class="alert alert-danger">{{ errorMsg }}</div> }
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" [(ngModel)]="form.date">
+        </div>
+        <div class="form-group">
+          <label>Statut</label>
+          <select [(ngModel)]="form.statut">
+            @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Zone *</label>
+          <select [(ngModel)]="form.zoneId">
+            <option value="">-- Choisir une zone --</option>
+            @for (z of zones; track z._id) { <option [value]="z._id">{{ z.nom }}</option> }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Équipe</label>
+          <select [(ngModel)]="form.equipeId">
+            <option value="">-- Choisir une équipe --</option>
+            @for (e of equipes; track e._id) { <option [value]="e._id">{{ e.nom }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Véhicule</label>
+          <select [(ngModel)]="form.vehiculeId">
+            <option value="">-- Choisir un véhicule --</option>
+            @for (v of vehicules; track v._id) { <option [value]="v._id">{{ v.immatriculation }} – {{ v.type }}</option> }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Heure début</label>
+          <input type="time" [(ngModel)]="form.heureDebut">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Heure fin</label>
+          <input type="time" [(ngModel)]="form.heureFin">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="form.notes" rows="3" placeholder="Instructions particulières…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+}

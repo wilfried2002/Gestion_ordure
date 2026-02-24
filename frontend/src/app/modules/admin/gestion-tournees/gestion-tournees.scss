@@ -1,0 +1,30 @@
+.filters-bar {
+  display: flex; gap: 1rem; margin-bottom: 1.25rem; align-items: center;
+  .search-bar { margin-bottom: 0; }
+}
+.filter-select {
+  padding: .55rem .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .9rem;
+  background: #fff;
+  color: var(--text-dark);
+  cursor: pointer;
+  &:focus { outline: none; border-color: var(--primary); }
+}
+.action-btns { display: flex; gap: .5rem; }
+.horaire { font-size: .85rem; color: var(--text-muted); }
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .75rem; padding: 3rem; color: var(--text-muted);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test -d \"d:\\\\Document\\\\Mes cours\\\\Conception WEB\\\\Gest_Ordure\\\\frontend\\\\src\\\\app\\\\modules\\\\agent\")",
+      "Bash(__NEW_LINE_cf69faa971685d07__ cat)",
+      "Bash(\"d:\\\\Document\\\\Mes cours\\\\Conception:*)"
+    ]
+  }
+}

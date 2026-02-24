@@ -1,1 +1,150 @@
-<p>signalement works!</p>
+<div class="page-wrapper">
+
+  @if (successMsg) {
+    <div class="alert-success-full">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div>
+        <strong>Signalement envoyé !</strong>
+        <p>{{ successMsg }}</p>
+      </div>
+    </div>
+  }
+
+  @if (errorMsg) { <div class="alert alert-danger">{{ errorMsg }}</div> }
+
+  <!-- Header -->
+  <div class="sg-header">
+    <div>
+      <h1 class="page-title">Nouveau signalement</h1>
+      <p class="page-subtitle">Signalez un problème lié à la collecte dans votre quartier</p>
+    </div>
+  </div>
+
+  @if (!successMsg) {
+    <div class="sg-form-card">
+
+      <!-- Step 1: Type -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="step-badge">1</div>
+          <h2>Quel est le problème ?</h2>
+        </div>
+        <div class="type-grid">
+          @for (opt of typeOptions; track opt.value) {
+            <button class="type-card" [class.selected]="form.type === opt.value" (click)="selectType(opt.value)">
+              <div class="type-icon">
+                @switch (opt.icon) {
+                  @case ('trash') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                      <path d="M10 11v6"/><path d="M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                    </svg>
+                  }
+                  @case ('alert') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  }
+                  @case ('package') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+                      <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                  }
+                  @case ('tool') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                  }
+                  @case ('wind') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/>
+                    </svg>
+                  }
+                  @default {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  }
+                }
+              </div>
+              <span>{{ opt.label }}</span>
+              @if (form.type === opt.value) {
+                <div class="type-check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Step 2: Zone -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="step-badge">2</div>
+          <h2>Où se trouve le problème ?</h2>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>Zone</label>
+            <select [(ngModel)]="form.zoneId">
+              <option value="">— Sélectionnez une zone —</option>
+              @for (z of zones; track z._id) {
+                <option [value]="z._id">{{ z.nom }} – {{ z.arrondissement }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quartier (optionnel)</label>
+            <input type="text" [(ngModel)]="form.quartier" placeholder="Ex: Akwa, Bassa, Deido…">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Description -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="step-badge">3</div>
+          <h2>Décrivez le problème</h2>
+        </div>
+        <div class="form-group">
+          <label>Description <span class="required">*</span></label>
+          <textarea [(ngModel)]="form.description" rows="5"
+            placeholder="Décrivez le problème en détail : localisation précise, durée, impact… Plus vous donnez d'informations, plus notre équipe pourra intervenir rapidement.">
+          </textarea>
+          <span class="char-count">{{ form.description.length }}/1000 caractères</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="sg-actions">
+        <button class="btn btn-ghost" routerLink="/citoyen/signalements">Annuler</button>
+        <button class="btn btn-submit" (click)="soumettre()" [disabled]="loading">
+          @if (loading) {
+            <span class="spinner"></span>
+            Envoi en cours…
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Envoyer le signalement
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

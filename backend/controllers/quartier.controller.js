@@ -1,19 +1,53 @@
 const Quartier = require('../models/Quartier');
+const { AppError } = require('../middlewares/error.middleware');
 
-exports.createQuartier = async (req, res) => {
+exports.createQuartier = async (req, res, next) => {
   try {
     const quartier = await Quartier.create(req.body);
-    res.status(201).json(quartier);
+    res.status(201).json({ success: true, data: quartier });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-exports.getQuartiers = async (req, res) => {
+exports.getQuartiers = async (req, res, next) => {
   try {
-    const quartiers = await Quartier.find().populate('zoneId');
-    res.json(quartiers);
+    const quartiers = await Quartier.find().populate('zoneId', 'nom');
+    res.json({ success: true, count: quartiers.length, data: quartiers });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
+  }
+};
+
+exports.getQuartierById = async (req, res, next) => {
+  try {
+    const quartier = await Quartier.findById(req.params.id).populate('zoneId', 'nom');
+    if (!quartier) return next(new AppError('Quartier non trouvé', 404));
+    res.json({ success: true, data: quartier });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateQuartier = async (req, res, next) => {
+  try {
+    const quartier = await Quartier.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).populate('zoneId', 'nom');
+    if (!quartier) return next(new AppError('Quartier non trouvé', 404));
+    res.json({ success: true, data: quartier });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteQuartier = async (req, res, next) => {
+  try {
+    const quartier = await Quartier.findByIdAndDelete(req.params.id);
+    if (!quartier) return next(new AppError('Quartier non trouvé', 404));
+    res.json({ success: true, message: 'Quartier supprimé avec succès' });
+  } catch (error) {
+    next(error);
   }
 };

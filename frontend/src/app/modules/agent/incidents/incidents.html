@@ -1,1 +1,131 @@
-<p>incidents works!</p>
+<div class="page-wrapper">
+
+  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
+  @if (errorMsg)   { <div class="alert alert-danger">{{ errorMsg }}</div> }
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes incidents</h1>
+      <p class="page-subtitle">
+        {{ incidents.length }} incident{{ incidents.length > 1 ? 's' : '' }} signalé{{ incidents.length > 1 ? 's' : '' }}
+      </p>
+    </div>
+    <button class="btn btn-primary" (click)="showForm = !showForm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        @if (showForm) {
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        } @else {
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        }
+      </svg>
+      {{ showForm ? 'Annuler' : 'Signaler un incident' }}
+    </button>
+  </div>
+
+  <!-- Formulaire de signalement -->
+  @if (showForm) {
+    <div class="incident-form-card">
+      <h2 class="form-title">Nouveau signalement</h2>
+      <div class="form-grid">
+
+        <div class="form-group form-full">
+          <label>Description <span class="required">*</span></label>
+          <textarea
+            [(ngModel)]="form.description"
+            rows="4"
+            placeholder="Décrivez l'incident : nature, localisation, impact sur la collecte… (min. 10 caractères)">
+          </textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Niveau de gravité</label>
+          <select [(ngModel)]="form.gravite">
+            <option value="Faible">Faible</option>
+            <option value="Modérée">Modérée</option>
+            <option value="Élevée">Élevée</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tournée concernée (optionnel)</label>
+          <select [(ngModel)]="form.tourneeId">
+            <option value="">— Aucune —</option>
+            @for (t of tournees; track t._id) {
+              <option [value]="t._id">
+                {{ t.date | date:'dd/MM/yyyy' }} – {{ t.zoneId?.nom ?? 'Zone ?' }} ({{ t.statut }})
+              </option>
+            }
+          </select>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" (click)="showForm = false">Annuler</button>
+        <button class="btn btn-primary" (click)="soumettre()" [disabled]="actionLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          {{ actionLoading ? 'Envoi…' : 'Soumettre le signalement' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- État de chargement -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des incidents…</p>
+    </div>
+
+  <!-- Liste vide -->
+  } @else if (incidents.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>Aucun incident signalé pour le moment.</p>
+      <small>Utilisez le bouton ci-dessus pour signaler un problème.</small>
+    </div>
+
+  <!-- Liste des incidents -->
+  } @else {
+    <div class="incidents-list">
+      @for (inc of incidents; track inc._id) {
+        <div class="incident-card"
+             [class.incident-card--high]="inc.gravite === 'Élevée'"
+             [class.incident-card--medium]="inc.gravite === 'Modérée'"
+             [class.incident-card--low]="inc.gravite === 'Faible'">
+
+          <div class="incident-card-header">
+            <div class="incident-badges">
+              <span [class]="graviteClass(inc.gravite)">{{ inc.gravite }}</span>
+              <span [class]="statutClass(inc.statut)">{{ inc.statut }}</span>
+            </div>
+            <span class="incident-date">{{ formatDate(inc.createdAt) }}</span>
+          </div>
+
+          <p class="incident-description">{{ inc.description }}</p>
+
+          @if (inc.tourneeId) {
+            <div class="incident-tournee">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <rect x="1" y="3" width="15" height="13"/>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+              Tournée du {{ inc.tourneeId.date | date:'dd/MM/yyyy' }} – {{ inc.tourneeId.statut }}
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

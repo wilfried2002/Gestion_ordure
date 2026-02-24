@@ -1,1 +1,169 @@
-<p>planning works!</p>
+<div class="page-wrapper">
+
+  <div class="pl-header">
+    <div>
+      <h1 class="page-title">Planning des collectes</h1>
+      <p class="page-subtitle">Consultez le calendrier des collectes d'ordures dans votre zone</p>
+    </div>
+    <div class="pl-filter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <select [(ngModel)]="filterZone">
+        <option value="">Toutes les zones</option>
+        @for (z of zones; track z._id) {
+          <option [value]="z._id">{{ z.nom }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner-teal"></div>
+      <p>Chargement du planning…</p>
+    </div>
+
+  } @else {
+
+    <!-- Collectes en cours -->
+    @if (inProgress.length > 0) {
+      <div class="section-block">
+        <div class="section-header live">
+          <div class="live-dot"></div>
+          <h2>En cours maintenant</h2>
+        </div>
+        <div class="tournees-list">
+          @for (t of inProgress; track t._id) {
+            <div class="tournee-card tournee-live">
+              <div class="tournee-date-col">
+                <div class="date-day live-text">Maintenant</div>
+              </div>
+              <div class="tournee-info">
+                <div class="tournee-zone">{{ t.zoneId?.nom ?? 'Zone ?' }}</div>
+                <div class="tournee-meta">
+                  @if (t.vehiculeId) {
+                    <span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                      </svg>
+                      {{ t.vehiculeId.immatriculation }}
+                    </span>
+                  }
+                  @if (t.equipeId) {
+                    <span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 010 7.75"/>
+                      </svg>
+                      {{ t.equipeId.nom }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <span [class]="statutClass(t.statut)">{{ t.statut }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Prochaines collectes -->
+    <div class="section-block">
+      <div class="section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <h2>Prochaines collectes</h2>
+        <span class="section-count">{{ upcoming.length }} planifiée{{ upcoming.length > 1 ? 's' : '' }}</span>
+      </div>
+
+      @if (upcoming.length === 0) {
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p>Aucune collecte planifiée pour cette zone.</p>
+        </div>
+      } @else {
+        <div class="tournees-list">
+          @for (t of upcoming; track t._id) {
+            <div class="tournee-card" [class.tournee-today]="isToday(t.date)">
+              <div class="tournee-date-col">
+                <div class="date-num">{{ t.date | date:'dd' }}</div>
+                <div class="date-mon">{{ t.date | date:'MMM':'':'fr' }}</div>
+                @if (isToday(t.date))    { <div class="date-badge today-badge">Auj.</div> }
+                @if (isTomorrow(t.date)) { <div class="date-badge tom-badge">Dem.</div> }
+              </div>
+              <div class="tournee-info">
+                <div class="tournee-zone">{{ t.zoneId?.nom ?? 'Zone non définie' }}</div>
+                @if (t.zoneId?.arrondissement) {
+                  <div class="tournee-arr">{{ t.zoneId.arrondissement }}</div>
+                }
+                <div class="tournee-meta">
+                  @if (t.heureDebut) {
+                    <span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      {{ t.heureDebut }}{{ t.heureFin ? ' – ' + t.heureFin : '' }}
+                    </span>
+                  }
+                  @if (t.quartiers?.length > 0) {
+                    <span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                      </svg>
+                      {{ t.quartiers.length }} quartier{{ t.quartiers.length > 1 ? 's' : '' }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <span [class]="statutClass(t.statut)">{{ t.statut }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Collectes passées -->
+    @if (past.length > 0) {
+      <div class="section-block">
+        <div class="section-header muted">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>
+          <h2>Collectes récentes</h2>
+        </div>
+        <div class="tournees-list past-list">
+          @for (t of past; track t._id) {
+            <div class="tournee-card tournee-past">
+              <div class="tournee-date-col">
+                <div class="date-num">{{ t.date | date:'dd' }}</div>
+                <div class="date-mon">{{ t.date | date:'MMM':'':'fr' }}</div>
+              </div>
+              <div class="tournee-info">
+                <div class="tournee-zone">{{ t.zoneId?.nom ?? 'Zone ?' }}</div>
+                @if (t.heureDebutReel) {
+                  <div class="tournee-meta">
+                    <span>Effectuée à {{ t.heureDebutReel | date:'HH:mm' }}</span>
+                  </div>
+                }
+              </div>
+              <span [class]="statutClass(t.statut)">{{ t.statut }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+</div>

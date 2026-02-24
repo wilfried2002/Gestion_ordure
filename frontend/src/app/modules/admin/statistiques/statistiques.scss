@@ -1,0 +1,75 @@
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex; flex-direction: column; gap: .4rem;
+  &.kpi-green  { background: #dcfce7; border-left: 4px solid #16a34a; }
+  &.kpi-blue   { background: #dbeafe; border-left: 4px solid #2563eb; }
+  &.kpi-orange { background: #fef3c7; border-left: 4px solid #d97706; }
+  &.kpi-purple { background: #ede9fe; border-left: 4px solid #7c3aed; }
+}
+.kpi-value { font-size: 2.2rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
+.kpi-label { font-size: .9rem; font-weight: 600; color: var(--text-dark); }
+.kpi-sub   { font-size: .78rem; color: var(--text-muted); }
+
+/* Progress bars */
+.progress-section {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+.progress-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  h3 { font-size: .95rem; font-weight: 600; color: var(--text-dark); margin: 0 0 1rem; }
+}
+.progress-item { margin-bottom: .85rem; &:last-child { margin-bottom: 0; } }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: .82rem; color: var(--text-muted); margin-bottom: .35rem;
+}
+.progress-bar {
+  height: 8px; background: #f3f4f6; border-radius: 8px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 8px; transition: width .5s ease;
+  &.fill-green  { background: #16a34a; }
+  &.fill-blue   { background: #2563eb; }
+  &.fill-orange { background: #d97706; }
+}
+
+/* Tables grid */
+.tables-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+.card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 1rem; font-weight: 600; color: var(--text-dark); margin: 0; }
+.td-truncate {
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .75rem; padding: 3rem; color: var(--text-muted);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,158 @@
+<div class="auth-page">
+
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <span class="brand-name">GestOrdure</span>
+    </div>
+    <div class="auth-hero">
+      <h1>Rejoignez<br>la communauté</h1>
+      <p>Signalez les problèmes de collecte dans votre quartier et suivez leur résolution en temps réel.</p>
+      <div class="auth-features">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div>
+            <strong>Signalement géolocalisé</strong>
+            <span>Précisez la zone et le quartier concernés</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <strong>Suivi en temps réel</strong>
+            <span>Statut mis à jour par les agents</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <strong>Planning des collectes</strong>
+            <span>Consultez le calendrier de votre zone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2>Créer un compte</h2>
+        <p>Rejoignez GestOrdure gratuitement</p>
+      </div>
+
+      @if (successMsg) {
+        <div class="alert-success-full">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          {{ successMsg }}
+        </div>
+      }
+
+      @if (errorMsg) {
+        <div class="auth-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {{ errorMsg }}
+        </div>
+      }
+
+      @if (!successMsg) {
+        <form (ngSubmit)="register()" class="auth-form">
+
+          <div class="form-field">
+            <label>Nom complet</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <input type="text" [(ngModel)]="name" name="name" placeholder="Jean Dupont" required>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Adresse email</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input type="email" [(ngModel)]="email" name="email" placeholder="jean.dupont@email.com" required>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Mot de passe</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+              <input [type]="showPass ? 'text' : 'password'" [(ngModel)]="password" name="password" placeholder="Minimum 6 caractères" required>
+              <button type="button" class="pass-toggle" (click)="showPass = !showPass">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  @if (showPass) {
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  } @else {
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  }
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Confirmer le mot de passe</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+              <input [type]="showPass ? 'text' : 'password'" [(ngModel)]="confirm" name="confirm" placeholder="Répétez le mot de passe" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-auth" [disabled]="loading">
+            @if (loading) {
+              <span class="spinner"></span> Création du compte…
+            } @else {
+              Créer mon compte
+            }
+          </button>
+
+        </form>
+      }
+
+      <p class="auth-footer-text">
+        Vous avez déjà un compte ?
+        <a routerLink="/login" class="auth-link">Se connecter</a>
+      </p>
+    </div>
+  </div>
+
+</div>

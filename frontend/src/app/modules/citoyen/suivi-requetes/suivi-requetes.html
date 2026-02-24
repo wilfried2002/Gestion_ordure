@@ -1,1 +1,246 @@
-<p>suivi-requetes works!</p>
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <div class="sv-header">
+    <div>
+      <h1 class="page-title">Mes signalements</h1>
+      <p class="page-subtitle">Suivez l'avancement de vos signalements en temps réel</p>
+    </div>
+    <button class="btn btn-primary" (click)="goNouveau()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouveau signalement
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.total }}</div>
+        <div class="kpi-lbl">Total</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-attente" (click)="setFilter('En attente')" [class.active]="filterStatut === 'En attente'">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.enAttente }}</div>
+        <div class="kpi-lbl">En attente</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-cours" (click)="setFilter('En cours')" [class.active]="filterStatut === 'En cours'">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.enCours }}</div>
+        <div class="kpi-lbl">En cours</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-resolue" (click)="setFilter('Résolue')" [class.active]="filterStatut === 'Résolue'">
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-val">{{ stats.resolues }}</div>
+        <div class="kpi-lbl">Résolus</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button [class.active]="filterStatut === ''" (click)="setFilter('')">Tous</button>
+    <button [class.active]="filterStatut === 'En attente'" (click)="setFilter('En attente')">En attente</button>
+    <button [class.active]="filterStatut === 'En cours'"   (click)="setFilter('En cours')">En cours</button>
+    <button [class.active]="filterStatut === 'Résolue'"    (click)="setFilter('Résolue')">Résolus</button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-state"><div class="spinner-teal"></div><p>Chargement de vos signalements…</p></div>
+
+  <!-- Empty -->
+  } @else if (filtered.length === 0 && plaintes.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="56" height="56">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>Vous n'avez encore aucun signalement.</p>
+      <button class="btn btn-primary" (click)="goNouveau()">Faire un premier signalement</button>
+    </div>
+
+  <!-- Empty filter -->
+  } @else if (filtered.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <p>Aucun signalement dans cette catégorie.</p>
+    </div>
+
+  <!-- List -->
+  } @else {
+    <div class="plaintes-list">
+      @for (p of filtered; track p._id) {
+        <div class="plainte-card" (click)="openDetail(p)">
+
+          <div class="plainte-card-left">
+            <!-- Timeline indicator -->
+            <div class="timeline-dot" [class.dot-attente]="p.statut === 'En attente'"
+                 [class.dot-cours]="p.statut === 'En cours'"
+                 [class.dot-resolue]="p.statut === 'Résolue'">
+            </div>
+            <div class="timeline-line"></div>
+          </div>
+
+          <div class="plainte-card-body">
+            <div class="plainte-card-header">
+              <div class="plainte-meta">
+                <span [class]="statutClass(p.statut)">{{ p.statut }}</span>
+                @if (p.zoneId) {
+                  <span class="zone-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ p.zoneId.nom }}
+                  </span>
+                }
+              </div>
+              <span class="plainte-date">{{ formatDateShort(p.createdAt) }}</span>
+            </div>
+
+            <h3 class="plainte-type">{{ p.type }}</h3>
+            @if (p.description) {
+              <p class="plainte-desc">{{ p.description }}</p>
+            }
+
+            <!-- Mini progress tracker -->
+            <div class="progress-tracker">
+              <div class="progress-step" [class.done]="stepActive(p, 1)">
+                <div class="step-dot"></div>
+                <span>En attente</span>
+              </div>
+              <div class="progress-line" [class.done]="stepActive(p, 2)"></div>
+              <div class="progress-step" [class.done]="stepActive(p, 2)">
+                <div class="step-dot"></div>
+                <span>En cours</span>
+              </div>
+              <div class="progress-line" [class.done]="stepActive(p, 3)"></div>
+              <div class="progress-step" [class.done]="stepActive(p, 3)">
+                <div class="step-dot"></div>
+                <span>Résolue</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="plainte-card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- Modal détail -->
+@if (selectedPlainte) {
+  <div class="modal-backdrop" (click)="closeDetail()"></div>
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>Détail du signalement</h2>
+      <button class="modal-close" (click)="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Status timeline -->
+      <div class="detail-timeline">
+        <div class="dt-step" [class.dt-active]="stepActive(selectedPlainte, 1)">
+          <div class="dt-dot"></div>
+          <div class="dt-info">
+            <span class="dt-label">Signalement reçu</span>
+            <span class="dt-date">{{ formatDate(selectedPlainte.createdAt) }}</span>
+          </div>
+        </div>
+        <div class="dt-connector" [class.dt-active]="stepActive(selectedPlainte, 2)"></div>
+        <div class="dt-step" [class.dt-active]="stepActive(selectedPlainte, 2)">
+          <div class="dt-dot"></div>
+          <div class="dt-info"><span class="dt-label">Prise en charge</span></div>
+        </div>
+        <div class="dt-connector" [class.dt-active]="stepActive(selectedPlainte, 3)"></div>
+        <div class="dt-step" [class.dt-active]="stepActive(selectedPlainte, 3)">
+          <div class="dt-dot"></div>
+          <div class="dt-info"><span class="dt-label">Problème résolu</span></div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Type de problème</span>
+          <span class="detail-value">{{ selectedPlainte.type }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Statut</span>
+          <span [class]="statutClass(selectedPlainte.statut)">{{ selectedPlainte.statut }}</span>
+        </div>
+        @if (selectedPlainte.zoneId) {
+          <div class="detail-item">
+            <span class="detail-label">Zone concernée</span>
+            <span class="detail-value">{{ selectedPlainte.zoneId.nom }} – {{ selectedPlainte.zoneId.arrondissement }}</span>
+          </div>
+        }
+        @if (selectedPlainte.quartier) {
+          <div class="detail-item">
+            <span class="detail-label">Quartier</span>
+            <span class="detail-value">{{ selectedPlainte.quartier }}</span>
+          </div>
+        }
+        <div class="detail-item full">
+          <span class="detail-label">Description</span>
+          <span class="detail-value">{{ selectedPlainte.description || '—' }}</span>
+        </div>
+        @if (selectedPlainte.reponseAdmin) {
+          <div class="detail-item full">
+            <span class="detail-label">Réponse de l'administration</span>
+            <div class="admin-response">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
+              {{ selectedPlainte.reponseAdmin }}
+            </div>
+          </div>
+        }
+        <div class="detail-item">
+          <span class="detail-label">Date de signalement</span>
+          <span class="detail-value">{{ formatDate(selectedPlainte.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeDetail()">Fermer</button>
+    </div>
+  </div>
+}

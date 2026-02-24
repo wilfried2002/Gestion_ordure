@@ -1,0 +1,87 @@
+$teal:        #0d9488;
+$teal-light:  #ccfbf1;
+$teal-xlight: #f0fdfa;
+
+/* Header */
+.pl-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.pl-filter {
+  display: flex; align-items: center; gap: .5rem;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: .45rem .85rem; min-width: 200px;
+  &:focus-within { border-color: $teal; box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
+  svg { color: $teal; flex-shrink: 0; }
+  select { border: none; outline: none; flex: 1; font-size: .875rem; background: transparent; }
+}
+
+/* Sections */
+.section-block { margin-bottom: 2rem; }
+.section-header {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem;
+  h2 { font-size: .95rem; font-weight: 700; color: var(--text); margin: 0; }
+  svg { color: $teal; }
+  &.muted svg, &.muted h2 { color: var(--text-muted); }
+  &.live { svg { display: none; } h2 { color: #dc2626; } }
+}
+.section-count { font-size: .75rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
+.live-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #ef4444;
+  animation: livepulse 1.5s infinite;
+  box-shadow: 0 0 0 0 rgba(239,68,68,.4);
+}
+@keyframes livepulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+
+/* Tournee cards */
+.tournees-list { display: flex; flex-direction: column; gap: .6rem; }
+
+.tournee-card {
+  display: flex; align-items: center; gap: 1rem;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 10px; padding: .85rem 1rem;
+  transition: all .15s;
+  &:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+  &.tournee-today { border-color: $teal; background: $teal-xlight; }
+  &.tournee-live  { border-color: #fca5a5; background: #fff5f5; }
+  &.tournee-past  { opacity: .7; }
+}
+
+.tournee-date-col {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 44px; text-align: center; flex-shrink: 0;
+}
+.date-num  { font-size: 1.3rem; font-weight: 700; color: var(--text); line-height: 1; }
+.date-mon  { font-size: .7rem; text-transform: uppercase; color: var(--text-muted); }
+.date-day  { font-size: .78rem; font-weight: 600; color: var(--text-muted); }
+.live-text { color: #dc2626; }
+.date-badge {
+  margin-top: 3px; font-size: .65rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+}
+.today-badge { background: $teal; color: #fff; }
+.tom-badge   { background: #dbeafe; color: #1d4ed8; }
+
+.tournee-info { flex: 1; }
+.tournee-zone { font-size: .9rem; font-weight: 600; color: var(--text); }
+.tournee-arr  { font-size: .75rem; color: var(--text-muted); margin-top: 1px; }
+.tournee-meta {
+  display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .3rem;
+  span {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .75rem; color: var(--text-muted);
+  }
+}
+
+/* States */
+.loading-state { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: 3rem; color: var(--text-muted); }
+.spinner-teal {
+  width: 32px; height: 32px; border: 3px solid $teal-light; border-top-color: $teal;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 2rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: .75rem; svg { opacity: .3; } }

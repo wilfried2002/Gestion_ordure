@@ -1,1 +1,88 @@
-<p>gestion-zones works!</p>
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestion des zones</h1>
+      <p class="page-subtitle">Zones de collecte par arrondissement – Douala</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+      </svg>
+      Ajouter une zone
+    </button>
+  </div>
+
+  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
+  @if (errorMsg && !showModal) { <div class="alert alert-danger">{{ errorMsg }}</div> }
+
+  <div class="search-bar">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+    </svg>
+    <input type="text" [(ngModel)]="search" (ngModelChange)="applyFilter()" placeholder="Rechercher par nom, arrondissement…">
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+  } @else if (filtered.length === 0) {
+    <div class="empty-state">
+      <p>Aucune zone trouvée.</p>
+      <button class="btn btn-primary btn-sm" (click)="openCreate()">Créer la première</button>
+    </div>
+  } @else {
+    <div class="zones-grid">
+      @for (z of filtered; track z._id) {
+        <div class="zone-card">
+          <div class="zone-top">
+            <span class="zone-badge">{{ z.arrondissement || 'Douala' }}</span>
+            @if (z.superficie) { <span class="zone-info">{{ z.superficie }} km²</span> }
+          </div>
+          <h3 class="zone-nom">{{ z.nom }}</h3>
+          @if (z.description) { <p class="zone-desc">{{ z.description }}</p> }
+          <div class="zone-actions">
+            <button class="btn btn-outline btn-sm" (click)="openEdit(z)">Modifier</button>
+            <button class="btn btn-danger btn-sm" (click)="delete(z)">Supprimer</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal) {
+  <div class="modal-backdrop" (click)="closeModal()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <h2>{{ isEdit ? 'Modifier la zone' : 'Nouvelle zone' }}</h2>
+      <button class="modal-close" (click)="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      @if (errorMsg) { <div class="alert alert-danger">{{ errorMsg }}</div> }
+      <div class="form-group">
+        <label>Nom de la zone *</label>
+        <input type="text" [(ngModel)]="form.nom" placeholder="Zone Akwa Nord">
+      </div>
+      <div class="form-group">
+        <label>Arrondissement</label>
+        <select [(ngModel)]="form.arrondissement">
+          <option value="">-- Sélectionner --</option>
+          @for (a of arrondissements; track a) { <option [value]="a">{{ a }}</option> }
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Superficie (km²)</label>
+        <input type="number" [(ngModel)]="form.superficie" placeholder="5.2">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="form.description" rows="3" placeholder="Description de la zone…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+}
