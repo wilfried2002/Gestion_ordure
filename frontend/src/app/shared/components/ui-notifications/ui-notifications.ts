@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { ToastService, Toast } from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
@@ -13,16 +13,14 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 })
 export class UiNotifications {
 
-  toasts$  = this.toastSvc.toasts$;
-  confirm$ = this.confirmSvc.state$;
+  readonly toastSvc   = inject(ToastService);
+  readonly confirmSvc = inject(ConfirmService);
 
-  constructor(
-    public toastSvc:   ToastService,
-    public confirmSvc: ConfirmService,
-  ) {}
+  readonly toasts$  = this.toastSvc.toasts$;
+  readonly confirm$ = this.confirmSvc.state$;
 
-  dismiss(id: string)        { this.toastSvc.dismiss(id); }
-  answer(value: boolean)     { this.confirmSvc.answer(value); }
+  dismiss(id: string)    { this.toastSvc.dismiss(id); }
+  answer(value: boolean) { this.confirmSvc.answer(value); }
 
   trackToast(_: number, t: Toast) { return t.id; }
 }
