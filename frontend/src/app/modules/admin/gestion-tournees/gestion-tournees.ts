@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TourneeService } from '../../../core/services/tournee';
-import { ZoneService } from '../../../core/services/zone.service';
-import { EquipeService } from '../../../core/services/equipe.service';
+import { TourneeService }  from '../../../core/services/tournee';
+import { ZoneService }     from '../../../core/services/zone.service';
+import { EquipeService }   from '../../../core/services/equipe.service';
 import { VehiculeService } from '../../../core/services/vehicule';
+import { ToastService }    from '../../../core/services/toast.service';
+import { ConfirmService }  from '../../../core/services/confirm.service';
 
 @Component({
   selector: 'app-gestion-tournees',
@@ -15,35 +17,32 @@ import { VehiculeService } from '../../../core/services/vehicule';
 })
 export class GestionTournees implements OnInit {
 
-  tournees: any[] = [];
-  filtered: any[] = [];
+  tournees:  any[] = [];
+  filtered:  any[] = [];
   loading = true;
-  search = '';
+  search  = '';
   filterStatut = '';
 
-  zones: any[]    = [];
-  equipes: any[]  = [];
-  vehicules: any[]= [];
+  zones:     any[] = [];
+  equipes:   any[] = [];
+  vehicules: any[] = [];
 
   showModal = false;
-  isEdit = false;
-  saving = false;
-  errorMsg = '';
-  successMsg = '';
+  isEdit    = false;
+  saving    = false;
 
-  form: any = {
-    date: '', zoneId: '', equipeId: '', vehiculeId: '',
-    statut: 'Planifiée', heureDebut: '', heureFin: '', notes: ''
-  };
+  form: any = { date: '', zoneId: '', equipeId: '', vehiculeId: '', statut: 'Planifiée', heureDebut: '', heureFin: '', notes: '' };
   editId: string | null = null;
 
   statuts = ['Planifiée', 'En cours', 'Terminée', 'Annulée'];
 
   constructor(
-    private tourneeSvc: TourneeService,
-    private zoneSvc: ZoneService,
-    private equipeSvc: EquipeService,
+    private tourneeSvc:  TourneeService,
+    private zoneSvc:     ZoneService,
+    private equipeSvc:   EquipeService,
     private vehiculeSvc: VehiculeService,
+    private toast:       ToastService,
+    private confirmSvc:  ConfirmService,
   ) {}
 
   ngOnInit() {
@@ -56,7 +55,7 @@ export class GestionTournees implements OnInit {
   load() {
     this.loading = true;
     this.tourneeSvc.getAll().subscribe({
-      next: r => { this.tournees = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
+      next: r  => { this.tournees = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
       error: () => { this.loading = false; }
     });
   }
@@ -77,7 +76,7 @@ export class GestionTournees implements OnInit {
     this.isEdit = false; this.editId = null;
     const today = new Date().toISOString().split('T')[0];
     this.form = { date: today, zoneId: '', equipeId: '', vehiculeId: '', statut: 'Planifiée', heureDebut: '', heureFin: '', notes: '' };
-    this.errorMsg = ''; this.showModal = true;
+    this.showModal = true;
   }
 
   openEdit(t: any) {
@@ -89,23 +88,38 @@ export class GestionTournees implements OnInit {
       vehiculeId: t.vehiculeId?._id ?? t.vehiculeId ?? '',
       statut: t.statut, heureDebut: t.heureDebut ?? '', heureFin: t.heureFin ?? '', notes: t.notes ?? ''
     };
-    this.errorMsg = ''; this.showModal = true;
+    this.showModal = true;
   }
 
   save() {
-    this.saving = true; this.errorMsg = '';
+    if (!this.form.date) { this.toast.error('Champ requis', 'La date est obligatoire.'); return; }
+    if (!this.form.equipeId) { this.toast.error('Champ requis', "L'équipe est obligatoire."); return; }
+    this.saving = true;
     const obs = this.isEdit ? this.tourneeSvc.update(this.editId!, this.form) : this.tourneeSvc.create(this.form);
     obs.subscribe({
-      next: () => { this.saving = false; this.showModal = false; this.successMsg = this.isEdit ? 'Tournée modifiée.' : 'Tournée créée.'; this.load(); setTimeout(() => this.successMsg = '', 3000); },
-      error: (e: any) => { this.saving = false; this.errorMsg = e?.error?.message ?? 'Erreur.'; }
+      next: () => {
+        this.saving = false; this.showModal = false;
+        this.toast.success(
+          this.isEdit ? 'Tournée modifiée' : 'Tournée créée',
+          `La tournée du ${this.formatDate(this.form.date)} a été ${this.isEdit ? 'mise à jour' : 'planifiée'}.`
+        );
+        this.load();
+      },
+      error: (e: any) => { this.saving = false; this.toast.error('Erreur', e?.error?.message ?? 'Erreur.'); }
     });
   }
 
-  delete(t: any) {
-    if (!confirm('Supprimer cette tournée ?')) return;
+  async delete(t: any) {
+    const ok = await this.confirmSvc.open({
+      title:        'Supprimer la tournée',
+      message:      `Supprimer la tournée du ${this.formatDate(t.date)} ?`,
+      confirmLabel: 'Supprimer',
+      danger:       true,
+    });
+    if (!ok) return;
     this.tourneeSvc.delete(t._id).subscribe({
-      next: () => { this.successMsg = 'Tournée supprimée.'; this.load(); setTimeout(() => this.successMsg = '', 3000); },
-      error: () => { this.errorMsg = 'Suppression échouée.'; }
+      next: () => { this.toast.success('Supprimée', 'La tournée a été supprimée.'); this.load(); },
+      error: () => { this.toast.error('Erreur', 'La suppression a échoué.'); }
     });
   }
 

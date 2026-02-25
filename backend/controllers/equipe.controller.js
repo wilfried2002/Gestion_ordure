@@ -14,7 +14,8 @@ exports.getEquipes = async (req, res, next) => {
   try {
     const equipes = await Equipe.find()
       .populate('membres', 'name email')
-      .populate('vehiculeId', 'immatriculation statut');
+      .populate('vehiculeId', 'immatriculation statut')
+      .lean();
     res.json({ success: true, count: equipes.length, data: equipes });
   } catch (error) {
     next(error);
@@ -25,7 +26,8 @@ exports.getEquipeById = async (req, res, next) => {
   try {
     const equipe = await Equipe.findById(req.params.id)
       .populate('membres', 'name email role')
-      .populate('vehiculeId', 'immatriculation capacite statut');
+      .populate('vehiculeId', 'immatriculation capacite statut')
+      .lean();
     if (!equipe) return next(new AppError('Équipe non trouvée', 404));
     res.json({ success: true, data: equipe });
   } catch (error) {
@@ -40,7 +42,8 @@ exports.updateEquipe = async (req, res, next) => {
       runValidators: true,
     })
       .populate('membres', 'name email')
-      .populate('vehiculeId', 'immatriculation statut');
+      .populate('vehiculeId', 'immatriculation statut')
+      .lean();
     if (!equipe) return next(new AppError('Équipe non trouvée', 404));
     res.json({ success: true, data: equipe });
   } catch (error) {
@@ -67,7 +70,7 @@ exports.addMembre = async (req, res, next) => {
       req.params.id,
       { $addToSet: { membres: userId } },
       { new: true }
-    ).populate('membres', 'name email role');
+    ).populate('membres', 'name email role').lean();
     if (!equipe) return next(new AppError('Équipe non trouvée', 404));
     res.json({ success: true, data: equipe });
   } catch (error) {
@@ -82,7 +85,7 @@ exports.removeMembre = async (req, res, next) => {
       req.params.id,
       { $pull: { membres: req.params.userId } },
       { new: true }
-    ).populate('membres', 'name email role');
+    ).populate('membres', 'name email role').lean();
     if (!equipe) return next(new AppError('Équipe non trouvée', 404));
     res.json({ success: true, data: equipe });
   } catch (error) {

@@ -12,9 +12,6 @@
     </button>
   </div>
 
-  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
-  @if (errorMsg && !showModal) { <div class="alert alert-danger">{{ errorMsg }}</div> }
-
   <div class="search-bar">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
@@ -57,7 +54,6 @@
       <button class="modal-close" (click)="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      @if (errorMsg) { <div class="alert alert-danger">{{ errorMsg }}</div> }
       <div class="form-group">
         <label>Nom de la zone *</label>
         <input type="text" [(ngModel)]="form.nom" placeholder="Zone Akwa Nord">
@@ -81,7 +77,7 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
       <button class="btn btn-primary" (click)="save()" [disabled]="saving">
-        {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+        @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
       </button>
     </div>
   </div>

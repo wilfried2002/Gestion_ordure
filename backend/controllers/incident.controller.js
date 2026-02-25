@@ -18,7 +18,8 @@ exports.getIncidents = async (req, res, next) => {
     const incidents = await Incident.find()
       .populate('agentId', 'name email')
       .populate('tourneeId', 'date statut')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ success: true, count: incidents.length, data: incidents });
   } catch (error) {
     next(error);
@@ -29,7 +30,8 @@ exports.getIncidentById = async (req, res, next) => {
   try {
     const incident = await Incident.findById(req.params.id)
       .populate('agentId', 'name email')
-      .populate('tourneeId', 'date statut quartiers');
+      .populate('tourneeId', 'date statut quartiers')
+      .lean();
     if (!incident) return next(new AppError('Incident non trouvé', 404));
     res.json({ success: true, data: incident });
   } catch (error) {
@@ -42,7 +44,8 @@ exports.getMesIncidents = async (req, res, next) => {
   try {
     const incidents = await Incident.find({ agentId: req.user.id })
       .populate('tourneeId', 'date statut')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ success: true, count: incidents.length, data: incidents });
   } catch (error) {
     next(error);
@@ -56,7 +59,8 @@ exports.updateIncident = async (req, res, next) => {
       runValidators: true,
     })
       .populate('agentId', 'name email')
-      .populate('tourneeId', 'date statut');
+      .populate('tourneeId', 'date statut')
+      .lean();
     if (!incident) return next(new AppError('Incident non trouvé', 404));
     res.json({ success: true, data: incident });
   } catch (error) {

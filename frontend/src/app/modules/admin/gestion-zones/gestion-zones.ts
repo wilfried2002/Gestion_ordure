@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ZoneService } from '../../../core/services/zone.service';
+import { ZoneService }   from '../../../core/services/zone.service';
+import { ToastService }  from '../../../core/services/toast.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 
 @Component({
   selector: 'app-gestion-zones',
@@ -12,30 +14,32 @@ import { ZoneService } from '../../../core/services/zone.service';
 })
 export class GestionZones implements OnInit {
 
-  zones: any[] = [];
+  zones:    any[] = [];
   filtered: any[] = [];
   loading = true;
-  search = '';
+  search  = '';
 
   showModal = false;
-  isEdit = false;
-  saving = false;
-  errorMsg = '';
-  successMsg = '';
+  isEdit    = false;
+  saving    = false;
 
   form: any = { nom: '', description: '', arrondissement: '', superficie: '' };
   editId: string | null = null;
 
   arrondissements = ['Douala 1', 'Douala 2', 'Douala 3', 'Douala 4', 'Douala 5'];
 
-  constructor(private zoneSvc: ZoneService) {}
+  constructor(
+    private zoneSvc:    ZoneService,
+    private toast:      ToastService,
+    private confirmSvc: ConfirmService,
+  ) {}
 
   ngOnInit() { this.load(); }
 
   load() {
     this.loading = true;
     this.zoneSvc.getAll().subscribe({
-      next: r => { this.zones = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
+      next: r  => { this.zones = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
       error: () => { this.loading = false; }
     });
   }
@@ -50,29 +54,44 @@ export class GestionZones implements OnInit {
   openCreate() {
     this.isEdit = false; this.editId = null;
     this.form = { nom: '', description: '', arrondissement: '', superficie: '' };
-    this.errorMsg = ''; this.showModal = true;
+    this.showModal = true;
   }
 
   openEdit(z: any) {
     this.isEdit = true; this.editId = z._id;
-    this.form = { nom: z.nom, description: z.description ?? '', arrondissement: z.arrondissement ?? '', superficie: z.superficie ?? '' };
-    this.errorMsg = ''; this.showModal = true;
+    this.form = { nom: z.nom, description: z.description ?? '',
+                  arrondissement: z.arrondissement ?? '', superficie: z.superficie ?? '' };
+    this.showModal = true;
   }
 
   save() {
-    this.saving = true; this.errorMsg = '';
+    if (!this.form.nom?.trim()) { this.toast.error('Champ requis', 'Le nom est obligatoire.'); return; }
+    this.saving = true;
     const obs = this.isEdit ? this.zoneSvc.update(this.editId!, this.form) : this.zoneSvc.create(this.form);
     obs.subscribe({
-      next: () => { this.saving = false; this.showModal = false; this.successMsg = this.isEdit ? 'Zone modifiée.' : 'Zone créée.'; this.load(); setTimeout(() => this.successMsg = '', 3000); },
-      error: (e: any) => { this.saving = false; this.errorMsg = e?.error?.message ?? 'Erreur.'; }
+      next: () => {
+        this.saving = false; this.showModal = false;
+        this.toast.success(
+          this.isEdit ? 'Zone modifiée' : 'Zone créée',
+          `La zone "${this.form.nom}" a été ${this.isEdit ? 'mise à jour' : 'créée'}.`
+        );
+        this.load();
+      },
+      error: (e: any) => { this.saving = false; this.toast.error('Erreur', e?.error?.message ?? 'Erreur.'); }
     });
   }
 
-  delete(z: any) {
-    if (!confirm(`Supprimer "${z.nom}" ?`)) return;
+  async delete(z: any) {
+    const ok = await this.confirmSvc.open({
+      title:        'Supprimer la zone',
+      message:      `Supprimer définitivement la zone "${z.nom}" ?`,
+      confirmLabel: 'Supprimer',
+      danger:       true,
+    });
+    if (!ok) return;
     this.zoneSvc.delete(z._id).subscribe({
-      next: () => { this.successMsg = 'Zone supprimée.'; this.load(); setTimeout(() => this.successMsg = '', 3000); },
-      error: () => { this.errorMsg = 'Suppression échouée.'; }
+      next: () => { this.toast.success('Supprimée', `La zone "${z.nom}" a été supprimée.`); this.load(); },
+      error: () => { this.toast.error('Erreur', 'La suppression a échoué.'); }
     });
   }
 

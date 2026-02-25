@@ -12,9 +12,6 @@
     </button>
   </div>
 
-  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
-  @if (errorMsg && !showModal) { <div class="alert alert-danger">{{ errorMsg }}</div> }
-
   <!-- Filtres -->
   <div class="filters-bar">
     <div class="search-bar" style="flex:1">
@@ -85,7 +82,6 @@
       <button class="modal-close" (click)="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      @if (errorMsg) { <div class="alert alert-danger">{{ errorMsg }}</div> }
       <div class="form-row">
         <div class="form-group">
           <label>Date *</label>
@@ -141,7 +137,7 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
       <button class="btn btn-primary" (click)="save()" [disabled]="saving">
-        {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+        @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
       </button>
     </div>
   </div>

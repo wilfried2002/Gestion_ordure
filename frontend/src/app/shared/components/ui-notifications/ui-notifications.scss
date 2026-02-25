@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════
+   TOAST STACK
+═══════════════════════════════════════════════════════════════ */
+.toast-stack {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  width: 340px;
+  max-width: calc(100vw - 2.5rem);
+  pointer-events: none;
+}
+
+/* ── Toast card ─────────────────────────────────────────────── */
+.toast {
+  pointer-events: all;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .85rem 1rem .85rem .9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  backdrop-filter: blur(12px);
+  animation: toastIn .28s cubic-bezier(.175,.885,.32,1.275) both;
+
+  &.toast-exit { animation: toastOut .28s ease-in forwards; }
+
+  /* Couleurs par type */
+  &.toast-success { background: #052e16; color: #4ade80; border-color: rgba(74,222,128,.25); }
+  &.toast-error   { background: #1c0a09; color: #f87171; border-color: rgba(248,113,113,.25); }
+  &.toast-warning { background: #1c1400; color: #fbbf24; border-color: rgba(251,191,36,.25); }
+  &.toast-info    { background: #0c1a2e; color: #60a5fa; border-color: rgba(96,165,250,.25); }
+}
+
+/* Icône */
+.toast-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  svg { display: block; }
+}
+
+/* Corps */
+.toast-body { flex: 1; min-width: 0; }
+.toast-title {
+  font-size: .88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+.toast-msg {
+  font-size: .78rem;
+  opacity: .8;
+  margin: .2rem 0 0;
+}
+
+/* Bouton fermer */
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: .5;
+  color: inherit;
+  padding: 2px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: opacity .15s;
+  &:hover { opacity: 1; }
+}
+
+/* Barre de progression */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: currentColor;
+  opacity: .35;
+  transform-origin: left;
+  animation: toastProgress linear forwards;
+  animation-duration: var(--dur, 4000ms);
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { transform: translateX(calc(100% + 1.5rem)); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes toastOut {
+  from { transform: translateX(0); opacity: 1; max-height: 120px; margin-bottom: 0; }
+  to   { transform: translateX(calc(100% + 1.5rem)); opacity: 0; max-height: 0; margin-bottom: -.6rem; }
+}
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIRM DIALOG
+═══════════════════════════════════════════════════════════════ */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  animation: fadeIn .2s ease both;
+}
+
+.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10001;
+  width: 420px;
+  max-width: calc(100vw - 2rem);
+  background: #1a2e22;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  text-align: center;
+  animation: dialogIn .25s cubic-bezier(.175,.885,.32,1.275) both;
+}
+
+/* Icône */
+.confirm-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  background: rgba(34,197,94,.15);
+  color: #4ade80;
+
+  &.danger {
+    background: rgba(239,68,68,.15);
+    color: #f87171;
+  }
+}
+
+/* Textes */
+.confirm-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0 0 .5rem;
+}
+.confirm-message {
+  font-size: .875rem;
+  color: #94a3b8;
+  margin: 0 0 1.75rem;
+  line-height: 1.5;
+}
+
+/* Actions */
+.confirm-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dialogIn {
+  from { transform: translate(-50%, -48%) scale(.95); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+}
