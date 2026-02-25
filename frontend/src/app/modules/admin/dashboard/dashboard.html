@@ -1,68 +1,166 @@
 <div class="page-wrapper">
-  <!-- En-tête de page -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Tableau de bord</h1>
-      <p class="page-subtitle">Vue d'ensemble de la gestion des ordures – Douala</p>
+
+  <!-- ── En-tête personnalisée ──────────────────────────── -->
+  <div class="dash-hero">
+    <div class="dash-hero-left">
+      <div class="dash-greeting">
+        <div class="dash-avatar">{{ (currentUser?.name ?? 'A')[0].toUpperCase() }}</div>
+        <div>
+          <h1 class="dash-title">Bonjour, {{ currentUser?.name ?? 'Administrateur' }} 👋</h1>
+          <p class="dash-subtitle">
+            <span class="city-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+              </svg>
+              {{ ville }}
+            </span>
+            &nbsp;·&nbsp; Vue d'ensemble — Gestion des ordures
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="dash-hero-right">
+      <div class="dash-date">{{ today | date:'EEEE d MMMM y':'':'fr' }}</div>
+      <button class="btn btn-outline btn-sm" (click)="load()" [disabled]="loading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"
+             [class.spin]="loading">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+        </svg>
+        Actualiser
+      </button>
     </div>
   </div>
 
-  <!-- Cartes statistiques -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon icon-users">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-        </svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.users }}</span>
-        <span class="stat-label">Utilisateurs</span>
-      </div>
-      <a routerLink="/admin/users" class="stat-link">Voir tout →</a>
+  <!-- ── 6 Cartes de statistiques ──────────────────────── -->
+  @if (loading) {
+    <div class="stats-skeleton">
+      @for (i of [1,2,3,4,5,6]; track i) { <div class="skel-card"></div> }
     </div>
+  } @else {
+    <div class="stats-grid">
 
-    <div class="stat-card">
-      <div class="stat-icon icon-vehicules">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-        </svg>
+      <!-- Utilisateurs -->
+      <div class="stat-card stat-users">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ stats.users.total }}</span>
+            <span class="stat-lbl">Utilisateurs</span>
+          </div>
+        </div>
+        <div class="stat-chips">
+          <span class="chip chip-admin">{{ stats.users.ADMIN }} Admin</span>
+          <span class="chip chip-agent">{{ stats.users.AGENT }} Agent</span>
+          <span class="chip chip-citoyen">{{ stats.users.CITOYEN }} Citoyen</span>
+        </div>
+        <a routerLink="/admin/users" class="stat-link">Gérer →</a>
       </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.vehicules }}</span>
-        <span class="stat-label">Véhicules</span>
+
+      <!-- Agents -->
+      <div class="stat-card stat-agents">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ stats.users.AGENT }}</span>
+            <span class="stat-lbl">Agents actifs</span>
+          </div>
+        </div>
+        <a routerLink="/admin/equipes" class="stat-link">Voir équipes →</a>
       </div>
-      <a routerLink="/admin/vehicules" class="stat-link">Voir tout →</a>
+
+      <!-- Véhicules -->
+      <div class="stat-card stat-vehicules">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ stats.vehicules.total }}</span>
+            <span class="stat-lbl">Véhicules</span>
+          </div>
+        </div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar-label">
+            <span>{{ stats.vehicules.Disponible }} disponibles</span>
+            <span>{{ vehiculeDispoPercent }}%</span>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill fill-green" [style.width.%]="vehiculeDispoPercent"></div>
+          </div>
+        </div>
+        <a routerLink="/admin/vehicules" class="stat-link">Gérer →</a>
+      </div>
+
+      <!-- Zones -->
+      <div class="stat-card stat-zones">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ stats.zones }}</span>
+            <span class="stat-lbl">Zones de collecte</span>
+          </div>
+        </div>
+        <a routerLink="/admin/zones" class="stat-link">Gérer →</a>
+      </div>
+
+      <!-- Tournées -->
+      <div class="stat-card stat-tournees">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ tourneesActives }}</span>
+            <span class="stat-lbl">Tournées actives</span>
+          </div>
+        </div>
+        <div class="stat-chips">
+          <span class="chip chip-warning">{{ stats.tournees['Planifiée'] }} planifiées</span>
+          <span class="chip chip-info">{{ stats.tournees['En cours'] }} en cours</span>
+        </div>
+        <a routerLink="/admin/tournees" class="stat-link">Planifier →</a>
+      </div>
+
+      <!-- Plaintes -->
+      <div class="stat-card stat-plaintes" [class.has-alert]="stats.plaintesPendantes > 0">
+        <div class="stat-top">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-num">{{ stats.plaintesPendantes }}</span>
+            <span class="stat-lbl">Plaintes en attente</span>
+          </div>
+          @if (stats.plaintesPendantes > 0) {
+            <span class="alert-dot"></span>
+          }
+        </div>
+        <a routerLink="/admin/statistiques" class="stat-link">Traiter →</a>
+      </div>
+
     </div>
+  }
 
-    <div class="stat-card">
-      <div class="stat-icon icon-zones">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-        </svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.zones }}</span>
-        <span class="stat-label">Zones</span>
-      </div>
-      <a routerLink="/admin/zones" class="stat-link">Voir tout →</a>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon icon-tournees">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-        </svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.tournees }}</span>
-        <span class="stat-label">Tournées</span>
-      </div>
-      <a routerLink="/admin/tournees" class="stat-link">Voir tout →</a>
-    </div>
-  </div>
-
-  <!-- Contenu principal : 2 colonnes -->
+  <!-- ── Grille activités + actions ─────────────────────── -->
   <div class="dashboard-grid">
 
     <!-- Tournées récentes -->
@@ -71,30 +169,24 @@
         <h2 class="card-title">Tournées récentes</h2>
         <a routerLink="/admin/tournees" class="btn btn-outline btn-sm">Voir tout</a>
       </div>
-
       @if (loading) {
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Chargement...</p>
-        </div>
-      } @else if (tourneesRecentes.length === 0) {
+        <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+      } @else if (stats.tourneesRecentes.length === 0) {
         <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+          </svg>
           <p>Aucune tournée enregistrée.</p>
         </div>
       } @else {
         <table class="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Zone</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Date</th><th>Zone</th><th>Équipe</th><th>Statut</th></tr></thead>
           <tbody>
-            @for (t of tourneesRecentes; track t._id) {
+            @for (t of stats.tourneesRecentes; track t._id) {
               <tr>
                 <td>{{ formatDate(t.date) }}</td>
                 <td>{{ t.zoneId?.nom ?? '—' }}</td>
+                <td>{{ t.equipeId?.nom ?? '—' }}</td>
                 <td><span [class]="statutClass(t.statut)">{{ t.statut }}</span></td>
               </tr>
             }
@@ -109,25 +201,23 @@
         <h2 class="card-title">Plaintes récentes</h2>
         <a routerLink="/admin/statistiques" class="btn btn-outline btn-sm">Voir tout</a>
       </div>
-
-      @if (plaintes.length === 0) {
+      @if (loading) {
+        <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+      } @else if (stats.plaintesRecentes.length === 0) {
         <div class="empty-state">
-          <p>Aucune plainte enregistrée.</p>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p>Aucune plainte en attente. Parfait !</p>
         </div>
       } @else {
         <table class="table">
-          <thead>
-            <tr>
-              <th>Citoyen</th>
-              <th>Sujet</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Citoyen</th><th>Type</th><th>Statut</th></tr></thead>
           <tbody>
-            @for (p of plaintes; track p._id) {
+            @for (p of stats.plaintesRecentes; track p._id) {
               <tr>
-                <td>{{ p.citoyenId?.nom ?? 'Anonyme' }}</td>
-                <td class="td-truncate">{{ p.sujet }}</td>
+                <td>{{ p.citoyenId?.name ?? 'Anonyme' }}</td>
+                <td class="td-truncate">{{ p.type }}</td>
                 <td><span [class]="plainteClass(p.statut)">{{ p.statut }}</span></td>
               </tr>
             }
@@ -137,4 +227,48 @@
     </div>
 
   </div>
+
+  <!-- ── Actions rapides ────────────────────────────────── -->
+  <div class="quick-actions">
+    <h2 class="section-title">Actions rapides</h2>
+    <div class="actions-grid">
+      <a routerLink="/admin/users" [queryParams]="{action:'new'}" class="action-card action-user">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"/>
+        </svg>
+        <span>Nouvel utilisateur</span>
+      </a>
+      <a routerLink="/admin/tournees" class="action-card action-tournee">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Planifier tournée</span>
+      </a>
+      <a routerLink="/admin/vehicules" class="action-card action-vehicule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Ajouter véhicule</span>
+      </a>
+      <a routerLink="/admin/zones" class="action-card action-zone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Nouvelle zone</span>
+      </a>
+      <a routerLink="/admin/equipes" class="action-card action-equipe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
+        </svg>
+        <span>Gérer équipes</span>
+      </a>
+      <a routerLink="/admin/statistiques" class="action-card action-stats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+        </svg>
+        <span>Statistiques</span>
+      </a>
+    </div>
+  </div>
+
 </div>

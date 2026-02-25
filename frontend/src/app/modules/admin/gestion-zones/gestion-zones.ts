@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { ZoneService }   from '../../../core/services/zone.service';
 import { ToastService }  from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
@@ -38,9 +39,11 @@ export class GestionZones implements OnInit {
 
   load() {
     this.loading = true;
-    this.zoneSvc.getAll().subscribe({
-      next: r  => { this.zones = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
-      error: () => { this.loading = false; }
+    this.zoneSvc.getAll().pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: r  => { this.zones = r?.data ?? (Array.isArray(r) ? r : []); this.applyFilter(); },
+      error: () => {}
     });
   }
 

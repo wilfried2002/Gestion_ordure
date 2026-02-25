@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { UserService }    from '../../../core/services/user';
 import { EquipeService }  from '../../../core/services/equipe.service';
 import { ToastService }   from '../../../core/services/toast.service';
@@ -26,10 +27,11 @@ export class GestionUsers implements OnInit {
   saving    = false;
 
   // Le backend attend "name" (pas "nom")
-  form: any = { name: '', email: '', telephone: '', role: 'CITOYEN', password: '', equipeId: '' };
+  form: any = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', password: '', equipeId: '' };
   editId: string | null = null;
 
-  roles = ['ADMIN', 'AGENT', 'CITOYEN'];
+  roles  = ['ADMIN', 'AGENT', 'CITOYEN'];
+  villes = ['Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Maroua', 'Bamenda', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Kumba'];
 
   constructor(
     private userSvc:    UserService,
@@ -42,9 +44,11 @@ export class GestionUsers implements OnInit {
 
   load() {
     this.loading = true;
-    this.userSvc.getAll().subscribe({
-      next: r  => { this.users = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
-      error: () => { this.loading = false; }
+    this.userSvc.getAll().pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: r  => { this.users = r?.data ?? (Array.isArray(r) ? r : []); this.applyFilter(); },
+      error: () => {}
     });
   }
 
@@ -69,7 +73,7 @@ export class GestionUsers implements OnInit {
 
   openCreate() {
     this.isEdit = false; this.editId = null;
-    this.form   = { name: '', email: '', telephone: '', role: 'CITOYEN', password: '', equipeId: '' };
+    this.form   = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', password: '', equipeId: '' };
     this.showModal = true;
   }
 
@@ -77,6 +81,7 @@ export class GestionUsers implements OnInit {
     this.isEdit = true; this.editId = u._id;
     const equipe = this.getEquipeAgent(u._id);
     this.form = { name: u.name, email: u.email, telephone: u.telephone ?? '',
+                  ville: u.ville ?? 'Douala',
                   role: u.role, password: '', equipeId: equipe?._id ?? '' };
     this.showModal = true;
   }
@@ -88,7 +93,7 @@ export class GestionUsers implements OnInit {
 
     this.saving = true;
     const payload: any = { name: this.form.name, email: this.form.email,
-                           telephone: this.form.telephone, role: this.form.role };
+                           telephone: this.form.telephone, ville: this.form.ville, role: this.form.role };
     if (this.form.password) payload.password = this.form.password;
 
     const obs = this.isEdit

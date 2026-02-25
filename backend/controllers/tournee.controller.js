@@ -1,20 +1,32 @@
-const Tournee  = require('../models/Tournee');
-const Equipe   = require('../models/Equipe');
-const Collecte = require('../models/Collecte');
+const Tournee    = require('../models/Tournee');
+const Equipe     = require('../models/Equipe');
+const Collecte   = require('../models/Collecte');
 const { AppError } = require('../middlewares/error.middleware');
 
 /* ─── ADMIN CRUD ─────────────────────────────────────────────────────────── */
 
 exports.createTournee = async (req, res, next) => {
   try {
-    const tournee = await Tournee.create(req.body);
+    const tournee = await Tournee.create({ ...req.body, createdBy: req.user.id });
     res.status(201).json({ success: true, data: tournee });
   } catch (error) { next(error); }
 };
 
 exports.getTournees = async (req, res, next) => {
   try {
-    const tournees = await Tournee.find()
+    let filter = {};
+
+    if (req.user.role === 'ADMIN') {
+      // Admin voit uniquement les tournées qu'il a créées
+      filter = { createdBy: req.user.id };
+    } else if (req.user.role === 'AGENT') {
+      // Agent voit les tournées de ses équipes
+      const equipes = await Equipe.find({ membres: req.user.id }).select('_id').lean();
+      filter = { equipeId: { $in: equipes.map(e => e._id) } };
+    }
+    // CITOYEN → filtre vide = aucun résultat (route non exposée aux citoyens)
+
+    const tournees = await Tournee.find(filter)
       .populate('equipeId', 'nom vehiculeId')
       .populate('zoneId', 'nom')
       .populate('vehiculeId', 'immatriculation type')
@@ -34,28 +46,42 @@ exports.getTourneeById = async (req, res, next) => {
       .populate('quartiers', 'nom zoneId')
       .lean();
     if (!tournee) return next(new AppError('Tournée non trouvée', 404));
+
+    // ADMIN : vérifier la propriété
+    if (req.user.role === 'ADMIN' && tournee.createdBy?.toString() !== req.user.id) {
+      return next(new AppError('Accès refusé', 403));
+    }
+    // AGENT : vérifier qu'il est membre de l'équipe
+    if (req.user.role === 'AGENT') {
+      const equipe = await Equipe.findOne({ _id: tournee.equipeId, membres: req.user.id });
+      if (!equipe) return next(new AppError('Accès refusé', 403));
+    }
+
     res.json({ success: true, data: tournee });
   } catch (error) { next(error); }
 };
 
 exports.updateTournee = async (req, res, next) => {
   try {
-    const tournee = await Tournee.findByIdAndUpdate(req.params.id, req.body, {
+    let filter = { _id: req.params.id };
+    if (req.user.role === 'ADMIN') filter.createdBy = req.user.id;
+
+    const tournee = await Tournee.findOneAndUpdate(filter, req.body, {
       new: true, runValidators: true,
     })
       .populate('equipeId', 'nom')
       .populate('zoneId', 'nom')
       .populate('quartiers', 'nom')
       .lean();
-    if (!tournee) return next(new AppError('Tournée non trouvée', 404));
+    if (!tournee) return next(new AppError('Tournée non trouvée ou accès refusé', 404));
     res.json({ success: true, data: tournee });
   } catch (error) { next(error); }
 };
 
 exports.deleteTournee = async (req, res, next) => {
   try {
-    const tournee = await Tournee.findByIdAndDelete(req.params.id);
-    if (!tournee) return next(new AppError('Tournée non trouvée', 404));
+    const tournee = await Tournee.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
+    if (!tournee) return next(new AppError('Tournée non trouvée ou accès refusé', 404));
     res.json({ success: true, message: 'Tournée supprimée avec succès' });
   } catch (error) { next(error); }
 };
@@ -64,7 +90,6 @@ exports.deleteTournee = async (req, res, next) => {
 
 exports.getMesTournees = async (req, res, next) => {
   try {
-    // Trouver les équipes dont l'agent est membre (uniquement les IDs)
     const equipes = await Equipe.find({ membres: req.user.id }).select('_id').lean();
     const equipeIds = equipes.map(e => e._id);
 
@@ -88,6 +113,10 @@ exports.demarrerTournee = async (req, res, next) => {
     if (!tournee) return next(new AppError('Tournée non trouvée', 404));
     if (tournee.statut !== 'Planifiée')
       return next(new AppError(`Impossible de démarrer une tournée en statut "${tournee.statut}"`, 400));
+
+    // Vérifier que l'agent est bien dans l'équipe
+    const equipe = await Equipe.findOne({ _id: tournee.equipeId, membres: req.user.id });
+    if (!equipe) return next(new AppError('Accès refusé : vous n\'êtes pas membre de cette équipe', 403));
 
     tournee.statut = 'En cours';
     tournee.heureDebutReel = new Date();
@@ -124,6 +153,10 @@ exports.terminerTournee = async (req, res, next) => {
     if (!tournee) return next(new AppError('Tournée non trouvée', 404));
     if (tournee.statut !== 'En cours')
       return next(new AppError(`Impossible de terminer une tournée en statut "${tournee.statut}"`, 400));
+
+    // Vérifier que l'agent est bien dans l'équipe
+    const equipe = await Equipe.findOne({ _id: tournee.equipeId, membres: req.user.id });
+    if (!equipe) return next(new AppError('Accès refusé : vous n\'êtes pas membre de cette équipe', 403));
 
     const collectes = await Collecte.find({ tourneeId: tournee._id }).select('volume').lean();
     const volumeTotal = collectes.reduce((s, c) => s + (c.volume || 0), 0);

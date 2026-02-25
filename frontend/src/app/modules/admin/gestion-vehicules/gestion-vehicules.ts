@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { VehiculeService } from '../../../core/services/vehicule';
 import { ToastService }    from '../../../core/services/toast.service';
 import { ConfirmService }  from '../../../core/services/confirm.service';
@@ -39,9 +40,11 @@ export class GestionVehicules implements OnInit {
 
   load() {
     this.loading = true;
-    this.vehiculeSvc.getAll().subscribe({
-      next: r  => { this.vehicules = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
-      error: () => { this.loading = false; }
+    this.vehiculeSvc.getAll().pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: r  => { this.vehicules = r?.data ?? (Array.isArray(r) ? r : []); this.applyFilter(); },
+      error: () => {}
     });
   }
 

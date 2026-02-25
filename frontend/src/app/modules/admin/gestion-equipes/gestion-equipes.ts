@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { EquipeService }  from '../../../core/services/equipe.service';
 import { UserService }    from '../../../core/services/user';
 import { VehiculeService } from '../../../core/services/vehicule';
@@ -55,9 +56,11 @@ export class GestionEquipes implements OnInit {
 
   load() {
     this.loading = true;
-    this.equipeSvc.getAll().subscribe({
-      next: r => { this.equipes = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
-      error: () => { this.loading = false; }
+    this.equipeSvc.getAll().pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: r => { this.equipes = r?.data ?? (Array.isArray(r) ? r : []); this.applyFilter(); },
+      error: () => {}
     });
   }
 

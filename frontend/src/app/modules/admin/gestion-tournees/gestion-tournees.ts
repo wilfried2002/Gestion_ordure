@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { TourneeService }  from '../../../core/services/tournee';
 import { ZoneService }     from '../../../core/services/zone.service';
 import { EquipeService }   from '../../../core/services/equipe.service';
@@ -54,9 +55,11 @@ export class GestionTournees implements OnInit {
 
   load() {
     this.loading = true;
-    this.tourneeSvc.getAll().subscribe({
-      next: r  => { this.tournees = r.data ?? r ?? []; this.applyFilter(); this.loading = false; },
-      error: () => { this.loading = false; }
+    this.tourneeSvc.getAll().pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: r  => { this.tournees = r?.data ?? (Array.isArray(r) ? r : []); this.applyFilter(); },
+      error: () => {}
     });
   }
 

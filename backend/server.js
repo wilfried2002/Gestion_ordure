@@ -78,6 +78,7 @@ app.use('/api/tournees',  require('./routes/tournee.routes'));
 app.use('/api/collectes', require('./routes/collecte.routes'));
 app.use('/api/plaintes',  require('./routes/plainte.routes'));
 app.use('/api/incidents', require('./routes/incident.routes'));
+app.use('/api/stats',     require('./routes/stats.routes'));
 
 // ─── ROUTE HEALTH CHECK ────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

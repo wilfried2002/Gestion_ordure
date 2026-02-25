@@ -19,7 +19,8 @@ const tourneeSchema = new mongoose.Schema({
   heureFin:   { type: String },
   heureDebutReel: { type: Date },
   heureFinReel:   { type: Date },
-  notes: { type: String, maxlength: 500 },
+  notes:     { type: String, maxlength: 500 },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
 }, { timestamps: true });
 
 tourneeSchema.index({ date: 1 });

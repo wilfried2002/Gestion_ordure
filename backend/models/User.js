@@ -34,10 +34,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  ville: {
+    type: String,
+    trim: true,
+    default: 'Douala',
+  },
   isActive: {
     type: Boolean,
     default: true,
   },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
 }, { timestamps: true });
 
 // email déjà indexé via unique:true dans le schéma

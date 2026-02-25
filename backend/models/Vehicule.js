@@ -30,6 +30,7 @@ const vehiculeSchema = new mongoose.Schema({
   derniereMaintenance: {
     type: Date,
   },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
 }, { timestamps: true });
 
 vehiculeSchema.index({ statut: 1 });
