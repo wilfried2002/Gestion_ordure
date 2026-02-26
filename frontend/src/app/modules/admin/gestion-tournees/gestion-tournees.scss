@@ -28,3 +28,50 @@
   display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
+
+.auto-filled-hint {
+  display: inline-block;
+  margin-left: .4rem;
+  padding: .05rem .45rem;
+  font-size: .68rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, .12);
+  color: #818cf8;
+  vertical-align: middle;
+}
+
+/* Grille de cases à cocher pour les quartiers */
+.quartiers-grid {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  padding: .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-light, #f9fafb);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.quartier-chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .65rem;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: .82rem;
+  cursor: pointer;
+  background: #fff;
+  color: var(--text-dark);
+  transition: border-color .15s, background .15s, color .15s;
+  user-select: none;
+
+  input[type="checkbox"] { display: none; }
+
+  &.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  &:hover:not(.selected) {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+}

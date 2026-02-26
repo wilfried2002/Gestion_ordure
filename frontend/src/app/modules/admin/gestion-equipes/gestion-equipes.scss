@@ -111,8 +111,8 @@
   padding: .5rem .75rem;
   border: 1px solid var(--border, #2a3d2f);
   border-radius: 8px;
-  background: var(--surface, #1a2e22);
-  color: var(--text, #e2e8f0);
+  background: #fff;
+  color: #1f2937;
   font-size: .875rem;
   &:focus { outline: none; border-color: var(--primary, #22c55e); }
 }

@@ -97,14 +97,14 @@
       <div class="form-row">
         <div class="form-group">
           <label>Zone *</label>
-          <select [(ngModel)]="form.zoneId">
+          <select [(ngModel)]="form.zoneId" (ngModelChange)="onZoneChange()">
             <option value="">-- Choisir une zone --</option>
             @for (z of zones; track z._id) { <option [value]="z._id">{{ z.nom }}</option> }
           </select>
         </div>
         <div class="form-group">
-          <label>Équipe</label>
-          <select [(ngModel)]="form.equipeId">
+          <label>Équipe *</label>
+          <select [(ngModel)]="form.equipeId" (ngModelChange)="onEquipeChange()">
             <option value="">-- Choisir une équipe --</option>
             @for (e of equipes; track e._id) { <option [value]="e._id">{{ e.nom }}</option> }
           </select>
@@ -112,7 +112,12 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Véhicule</label>
+          <label>
+            Véhicule
+            @if (form.equipeId && form.vehiculeId) {
+              <span class="auto-filled-hint">auto-rempli</span>
+            }
+          </label>
           <select [(ngModel)]="form.vehiculeId">
             <option value="">-- Choisir un véhicule --</option>
             @for (v of vehicules; track v._id) { <option [value]="v._id">{{ v.immatriculation }} – {{ v.type }}</option> }
@@ -129,6 +134,25 @@
           <input type="time" [(ngModel)]="form.heureFin">
         </div>
       </div>
+      @if (quartiersZone.length > 0) {
+        <div class="form-group">
+          <label>
+            Quartiers concernés
+            <span class="badge badge-neutral" style="margin-left:.5rem">{{ form.quartiers.length }}/{{ quartiersZone.length }}</span>
+          </label>
+          <div class="quartiers-grid">
+            @for (q of quartiersZone; track q._id) {
+              <label class="quartier-chip" [class.selected]="isQuartierSelected(q._id)">
+                <input type="checkbox"
+                       [checked]="isQuartierSelected(q._id)"
+                       (change)="toggleQuartier(q._id)">
+                {{ q.nom }}
+              </label>
+            }
+          </div>
+        </div>
+      }
+
       <div class="form-group">
         <label>Notes</label>
         <textarea [(ngModel)]="form.notes" rows="3" placeholder="Instructions particulières…"></textarea>

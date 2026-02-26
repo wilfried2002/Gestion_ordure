@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { tap } from 'rxjs';
+import { HttpCacheService } from './http-cache.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -9,7 +10,8 @@ export class AuthService {
   private baseUrl = 'http://localhost:5000/api/auth';
 
   constructor(
-    private http: HttpClient,
+    private http:         HttpClient,
+    private cacheService: HttpCacheService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
 
@@ -33,6 +35,7 @@ export class AuthService {
   }
 
   logout() {
+    this.cacheService.clear();
     if (this.isBrowser) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

@@ -119,8 +119,10 @@ exports.tourneeRules = [
     .notEmpty().withMessage("L'équipe est requise")
     .isMongoId().withMessage('ID équipe invalide'),
   body('quartiers')
-    .isArray({ min: 1 }).withMessage('Au moins un quartier est requis'),
+    .optional()
+    .isArray().withMessage('Les quartiers doivent être un tableau'),
   body('quartiers.*')
+    .optional()
     .isMongoId().withMessage('ID de quartier invalide'),
   body('statut')
     .optional()

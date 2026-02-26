@@ -3,10 +3,12 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { HttpCacheService } from '../services/http-cache.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
   const router     = inject(Router);
+  const cache      = inject(HttpCacheService);
   const isBrowser  = isPlatformBrowser(platformId);
 
   // ── Injection du token ──────────────────────────────────────────
@@ -22,6 +24,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // Token absent, expiré ou invalide → déconnexion propre
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Vider le cache pour ne pas exposer les données d'un autre utilisateur
+        cache.clear();
         // Redirige vers /login en mémorisant la page cible
         const returnUrl = router.url;
         router.navigate(['/login'], {

@@ -4,6 +4,16 @@ const adminScope   = require('../utils/scopeFilter');
 
 exports.createEquipe = async (req, res, next) => {
   try {
+    // Règle : un véhicule ne peut être assigné qu'à une seule équipe
+    if (req.body.vehiculeId) {
+      const existing = await Equipe.findOne({ vehiculeId: req.body.vehiculeId, createdBy: req.user.id }).lean();
+      if (existing) {
+        return next(new AppError(
+          `Ce véhicule est déjà assigné à l'équipe "${existing.nom}". Un véhicule ne peut pas être partagé entre plusieurs équipes.`,
+          409
+        ));
+      }
+    }
     const equipe = await Equipe.create({ ...req.body, createdBy: req.user.id });
     res.status(201).json({ success: true, data: equipe });
   } catch (error) { next(error); }
@@ -33,6 +43,20 @@ exports.getEquipeById = async (req, res, next) => {
 
 exports.updateEquipe = async (req, res, next) => {
   try {
+    // Règle : un véhicule ne peut être assigné qu'à une seule équipe
+    if (req.body.vehiculeId) {
+      const existing = await Equipe.findOne({
+        vehiculeId: req.body.vehiculeId,
+        createdBy: req.user.id,
+        _id: { $ne: req.params.id },
+      }).lean();
+      if (existing) {
+        return next(new AppError(
+          `Ce véhicule est déjà assigné à l'équipe "${existing.nom}". Un véhicule ne peut pas être partagé entre plusieurs équipes.`,
+          409
+        ));
+      }
+    }
     const equipe = await Equipe.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user.id },
       req.body,
@@ -59,6 +83,20 @@ exports.addMembre = async (req, res, next) => {
   try {
     const { userId } = req.body;
     if (!userId) return next(new AppError('userId est requis', 400));
+
+    // Règle : un agent ne peut appartenir qu'à une seule équipe
+    const autreEquipe = await Equipe.findOne({
+      membres: userId,
+      createdBy: req.user.id,
+      _id: { $ne: req.params.id },
+    }).lean();
+    if (autreEquipe) {
+      return next(new AppError(
+        `Cet agent est déjà membre de l'équipe "${autreEquipe.nom}". Un agent ne peut appartenir qu'à une seule équipe à la fois.`,
+        409
+      ));
+    }
+
     const equipe = await Equipe.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user.id },
       { $addToSet: { membres: userId } },

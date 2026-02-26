@@ -1,40 +1,89 @@
 <div class="page-wrapper">
+
+  <!-- ── En-tête ────────────────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Gestion des zones</h1>
-      <p class="page-subtitle">Zones de collecte par arrondissement – Douala</p>
+      <p class="page-subtitle">
+        Zones de collecte par arrondissement –
+        <span class="city-pill">{{ ville }}</span>
+        @if (totalCount > 0) {
+          <span class="coverage-pill" [class.complete]="missingCount === 0">
+            {{ coveredCount }}/{{ totalCount }} couverts
+          </span>
+        }
+      </p>
     </div>
-    <button class="btn btn-primary" (click)="openCreate()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-      </svg>
-      Ajouter une zone
-    </button>
+    <div class="header-actions">
+      <!-- Génération automatique -->
+      @if (missingCount > 0) {
+        <button class="btn btn-secondary" (click)="generateAllZones()" [disabled]="generating">
+          @if (generating) {
+            <span class="btn-spinner"></span> Génération…
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            </svg>
+            Générer {{ missingCount }} zone{{ missingCount > 1 ? 's' : '' }}
+          }
+        </button>
+      }
+      <button class="btn btn-primary" (click)="openCreate()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        Ajouter une zone
+      </button>
+    </div>
   </div>
 
+  <!-- ── Tuiles de couverture par arrondissement ────────────────────────── -->
+  @if (arrondissements.length > 0) {
+    <div class="coverage-bar">
+      <span class="coverage-label">Couverture {{ ville }} :</span>
+      <div class="arr-chips">
+        @for (a of arrondissements; track a.nom) {
+          <span class="arr-chip" [class.covered]="a.exists" [class.missing]="!a.exists"
+                title="{{ a.exists ? 'Zone créée' : 'Zone manquante' }}">
+            {{ a.nom }}
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Barre de recherche ─────────────────────────────────────────────── -->
   <div class="search-bar">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
     </svg>
-    <input type="text" [(ngModel)]="search" (ngModelChange)="applyFilter()" placeholder="Rechercher par nom, arrondissement…">
+    <input type="text" [(ngModel)]="search" (ngModelChange)="applyFilter()" placeholder="Rechercher par nom ou arrondissement…">
   </div>
 
+  <!-- ── Liste des zones ────────────────────────────────────────────────── -->
   @if (loading) {
     <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
   } @else if (filtered.length === 0) {
     <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/>
+      </svg>
       <p>Aucune zone trouvée.</p>
-      <button class="btn btn-primary btn-sm" (click)="openCreate()">Créer la première</button>
+      @if (missingCount > 0) {
+        <button class="btn btn-secondary btn-sm" (click)="generateAllZones()">
+          Générer les zones de {{ ville }}
+        </button>
+      } @else {
+        <button class="btn btn-primary btn-sm" (click)="openCreate()">Créer la première zone</button>
+      }
     </div>
   } @else {
     <div class="zones-grid">
       @for (z of filtered; track z._id) {
         <div class="zone-card">
           <div class="zone-top">
-            <span class="zone-badge">{{ z.arrondissement || 'Douala' }}</span>
-            @if (z.superficie) { <span class="zone-info">{{ z.superficie }} km²</span> }
+            <span class="zone-badge">{{ z.nom }}</span>
           </div>
-          <h3 class="zone-nom">{{ z.nom }}</h3>
           @if (z.description) { <p class="zone-desc">{{ z.description }}</p> }
           <div class="zone-actions">
             <button class="btn btn-outline btn-sm" (click)="openEdit(z)">Modifier</button>
@@ -46,33 +95,43 @@
   }
 </div>
 
+<!-- ── Modal création / modification ─────────────────────────────────────── -->
 @if (showModal) {
   <div class="modal-backdrop" (click)="closeModal()"></div>
   <div class="modal">
     <div class="modal-header">
-      <h2>{{ isEdit ? 'Modifier la zone' : 'Nouvelle zone' }}</h2>
+      <h2>{{ isEdit ? 'Modifier la zone' : 'Nouvelle zone – ' + ville }}</h2>
       <button class="modal-close" (click)="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- Sélecteur d'arrondissement (uniquement à la création) -->
+      @if (!isEdit && arrondissements.length > 0) {
+        <div class="form-group">
+          <label>Arrondissement de {{ ville }}</label>
+          <select [(ngModel)]="form.arrondissement" (ngModelChange)="onArrondissementChange($event)">
+            <option value="">— Sélectionner un arrondissement —</option>
+            @for (a of arrondissements; track a.nom) {
+              <option [value]="a.nom" [disabled]="a.exists">
+                {{ a.nom }}{{ a.exists ? ' (déjà créé)' : '' }}
+              </option>
+            }
+          </select>
+          <small class="field-hint">Sélectionner un arrondissement pré-remplit le nom de la zone.</small>
+        </div>
+      }
+
       <div class="form-group">
         <label>Nom de la zone *</label>
-        <input type="text" [(ngModel)]="form.nom" placeholder="Zone Akwa Nord">
+        <input type="text" [(ngModel)]="form.nom" placeholder="ex : Douala 3ème">
       </div>
-      <div class="form-group">
-        <label>Arrondissement</label>
-        <select [(ngModel)]="form.arrondissement">
-          <option value="">-- Sélectionner --</option>
-          @for (a of arrondissements; track a) { <option [value]="a">{{ a }}</option> }
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Superficie (km²)</label>
-        <input type="number" [(ngModel)]="form.superficie" placeholder="5.2">
-      </div>
+
       <div class="form-group">
         <label>Description</label>
-        <textarea [(ngModel)]="form.description" rows="3" placeholder="Description de la zone…"></textarea>
+        <textarea [(ngModel)]="form.description" rows="3"
+                  placeholder="Description de la zone de collecte…"></textarea>
       </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
