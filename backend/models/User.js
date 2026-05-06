@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
     enum: ['ADMIN', 'AGENT', 'CITOYEN'],
     default: 'CITOYEN',
   },
+  /** Poste spécifique aux agents : CHAUFFEUR ou COLLECTEUR */
+  poste: {
+    type: String,
+    enum: ['CHAUFFEUR', 'COLLECTEUR', null],
+    default: null,
+  },
   quartier: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Quartier',

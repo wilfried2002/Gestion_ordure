@@ -6,11 +6,12 @@ import { UserService }    from '../../../core/services/user';
 import { EquipeService }  from '../../../core/services/equipe.service';
 import { ToastService }   from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-gestion-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './gestion-users.html',
   styleUrl: './gestion-users.scss',
 })
@@ -27,10 +28,11 @@ export class GestionUsers implements OnInit {
   saving    = false;
 
   // Le backend attend "name" (pas "nom")
-  form: any = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', password: '', equipeId: '' };
+  form: any = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', poste: '', password: '', equipeId: '' };
   editId: string | null = null;
 
   roles  = ['ADMIN', 'AGENT', 'CITOYEN'];
+  postes = ['CHAUFFEUR', 'COLLECTEUR'];
   villes = ['Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Maroua', 'Bamenda', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Kumba'];
 
   constructor(
@@ -73,7 +75,7 @@ export class GestionUsers implements OnInit {
 
   openCreate() {
     this.isEdit = false; this.editId = null;
-    this.form   = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', password: '', equipeId: '' };
+    this.form   = { name: '', email: '', telephone: '', ville: 'Douala', role: 'CITOYEN', poste: '', password: '', equipeId: '' };
     this.showModal = true;
   }
 
@@ -82,7 +84,7 @@ export class GestionUsers implements OnInit {
     const equipe = this.getEquipeAgent(u._id);
     this.form = { name: u.name, email: u.email, telephone: u.telephone ?? '',
                   ville: u.ville ?? 'Douala',
-                  role: u.role, password: '', equipeId: equipe?._id ?? '' };
+                  role: u.role, poste: u.poste ?? '', password: '', equipeId: equipe?._id ?? '' };
     this.showModal = true;
   }
 
@@ -93,7 +95,8 @@ export class GestionUsers implements OnInit {
 
     this.saving = true;
     const payload: any = { name: this.form.name, email: this.form.email,
-                           telephone: this.form.telephone, ville: this.form.ville, role: this.form.role };
+                           telephone: this.form.telephone, ville: this.form.ville, role: this.form.role,
+                           poste: this.form.poste || null };
     if (this.form.password) payload.password = this.form.password;
 
     const obs = this.isEdit

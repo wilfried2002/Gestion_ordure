@@ -1,6 +1,7 @@
 const Tournee    = require('../models/Tournee');
 const Equipe     = require('../models/Equipe');
 const Collecte   = require('../models/Collecte');
+const Vehicule   = require('../models/Vehicule');
 const { AppError } = require('../middlewares/error.middleware');
 
 /* ─── ADMIN CRUD ─────────────────────────────────────────────────────────── */
@@ -17,18 +18,28 @@ exports.getTournees = async (req, res, next) => {
     let filter = {};
 
     if (req.user.role === 'ADMIN') {
-      // Admin voit uniquement les tournées qu'il a créées
+      // Admin voit uniquement les tournées qu'il a créées (index: createdBy + date)
       filter = { createdBy: req.user.id };
+
     } else if (req.user.role === 'AGENT') {
       // Agent voit les tournées de ses équipes
       const equipes = await Equipe.find({ membres: req.user.id }).select('_id').lean();
       filter = { equipeId: { $in: equipes.map(e => e._id) } };
+
+    } else {
+      // CITOYEN – planning public : tournées à venir + 45 derniers jours uniquement
+      // Évite un full-scan sur toute la collection
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 45);
+      filter = {
+        date: { $gte: cutoff },
+        statut: { $ne: 'Annulée' },
+      };
     }
-    // CITOYEN → filtre vide = aucun résultat (route non exposée aux citoyens)
 
     const tournees = await Tournee.find(filter)
-      .populate('equipeId', 'nom vehiculeId')
-      .populate('zoneId', 'nom')
+      .populate('equipeId', 'nom')
+      .populate('zoneId',   'nom')
       .populate('vehiculeId', 'immatriculation type')
       .populate('quartiers', 'nom')
       .sort({ date: -1 })
@@ -90,13 +101,20 @@ exports.deleteTournee = async (req, res, next) => {
 
 exports.getMesTournees = async (req, res, next) => {
   try {
-    const equipes = await Equipe.find({ membres: req.user.id }).select('_id').lean();
+    const equipes   = await Equipe.find({ membres: req.user.id }).select('_id').lean();
     const equipeIds = equipes.map(e => e._id);
 
-    const tournees = await Tournee.find({ equipeId: { $in: equipeIds } })
-      .populate('equipeId', 'nom vehiculeId')
-      .populate('zoneId', 'nom arrondissement')
-      .populate('vehiculeId', 'immatriculation type')
+    // Limite aux 90 derniers jours + tournées futures — réduit la taille du résultat
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+
+    const tournees = await Tournee.find({
+      equipeId: { $in: equipeIds },
+      date:     { $gte: cutoff },
+    })
+      .populate('equipeId',  'nom vehiculeId')
+      .populate('zoneId',    'nom arrondissement')
+      .populate('vehiculeId','immatriculation type')
       .populate('quartiers', 'nom')
       .sort({ date: -1 })
       .lean();
@@ -109,6 +127,11 @@ exports.getMesTournees = async (req, res, next) => {
 
 exports.demarrerTournee = async (req, res, next) => {
   try {
+    // Seul un agent avec le poste CHAUFFEUR peut démarrer une tournée
+    if (req.user.poste !== 'CHAUFFEUR') {
+      return next(new AppError('Accès refusé : seul le chauffeur désigné peut démarrer la tournée.', 403));
+    }
+
     const tournee = await Tournee.findById(req.params.id).populate('quartiers', 'nom');
     if (!tournee) return next(new AppError('Tournée non trouvée', 404));
     if (tournee.statut !== 'Planifiée')
@@ -121,6 +144,11 @@ exports.demarrerTournee = async (req, res, next) => {
     tournee.statut = 'En cours';
     tournee.heureDebutReel = new Date();
     await tournee.save();
+
+    // Mettre le véhicule assigné en statut "En tournée"
+    if (tournee.vehiculeId) {
+      await Vehicule.findByIdAndUpdate(tournee.vehiculeId, { statut: 'En tournée' });
+    }
 
     if (tournee.quartiers && tournee.quartiers.length > 0) {
       const points = tournee.quartiers.map(q => ({
@@ -149,6 +177,11 @@ exports.demarrerTournee = async (req, res, next) => {
 
 exports.terminerTournee = async (req, res, next) => {
   try {
+    // Seul un agent avec le poste CHAUFFEUR peut terminer une tournée
+    if (req.user.poste !== 'CHAUFFEUR') {
+      return next(new AppError('Accès refusé : seul le chauffeur désigné peut terminer la tournée.', 403));
+    }
+
     const tournee = await Tournee.findById(req.params.id);
     if (!tournee) return next(new AppError('Tournée non trouvée', 404));
     if (tournee.statut !== 'En cours')
@@ -165,6 +198,11 @@ exports.terminerTournee = async (req, res, next) => {
     tournee.heureFinReel = new Date();
     tournee.volumeTotal = volumeTotal;
     await tournee.save();
+
+    // Remettre le véhicule en "Disponible"
+    if (tournee.vehiculeId) {
+      await Vehicule.findByIdAndUpdate(tournee.vehiculeId, { statut: 'Disponible' });
+    }
 
     res.json({ success: true, message: 'Tournée terminée', data: tournee });
   } catch (error) { next(error); }

@@ -32,6 +32,20 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Poste badge ─────────────────────────────── */
+.poste-badge {
+  display: inline-block;
+  margin-left: .35rem;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: .7rem;
+  font-weight: 700;
+  vertical-align: middle;
+  letter-spacing: .03em;
+}
+
 /* ── Équipe column ───────────────────────────── */
 .equipe-tag {
   display: inline-flex;

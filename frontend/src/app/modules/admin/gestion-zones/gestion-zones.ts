@@ -6,11 +6,12 @@ import { ZoneService }   from '../../../core/services/zone.service';
 import { AuthService }   from '../../../core/services/auth';
 import { ToastService }  from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-gestion-zones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './gestion-zones.html',
   styleUrl: './gestion-zones.scss',
 })
@@ -112,6 +113,7 @@ export class GestionZones implements OnInit {
     this.isEdit = false; this.editId = null;
     this.form = { nom: '', description: '', arrondissement: '' };
     this.showModal = true;
+    
   }
 
   openEdit(z: any) {

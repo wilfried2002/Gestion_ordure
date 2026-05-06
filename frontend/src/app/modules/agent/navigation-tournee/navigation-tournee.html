@@ -1,0 +1,242 @@
+<div class="nav-container">
+
+  <!-- ── CARTE Leaflet ── -->
+  <div class="map-section">
+    <!-- Div dédié Leaflet — NE PAS mettre d'autres enfants Angular ici -->
+    <div #mapContainer class="gmap-container"></div>
+
+    <!-- Overlays Angular (position absolute par-dessus la carte) -->
+    @if (loading) {
+      <div class="map-loading">
+        <div class="spinner"></div>
+        <p>Chargement de la tournée…</p>
+      </div>
+    }
+    @if (simAutoActif) {
+      <div class="demo-badge-map">
+        <span class="demo-dot"></span>
+        DÉMO EN COURS — {{ simEtape }}
+      </div>
+    }
+  </div>
+
+  <!-- ── PANNEAU LATÉRAL ── -->
+  <div class="nav-panel">
+
+    <!-- En-tête -->
+    <div class="nav-header">
+      <div class="nav-header-top">
+        <a [routerLink]="['/agent/tournee', tourneeId]" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </a>
+        <h2 class="nav-title">Navigation</h2>
+        @if (tournee?.statut) {
+          <span class="badge badge-info">{{ tournee.statut }}</span>
+        }
+      </div>
+      @if (tournee?.zoneId?.nom) {
+        <p class="nav-subtitle">{{ tournee.zoneId.nom }}</p>
+      }
+    </div>
+
+    <!-- Statut GPS -->
+    <div class="gps-status" [class.gps-on]="gpsActif">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+      </svg>
+      {{ gpsActif ? 'GPS actif' : 'GPS inactif — activez la localisation' }}
+      @if (modeSimulation && gpsActif) { <span class="sim-tag">SIM</span> }
+    </div>
+
+    <!-- Tournée terminée -->
+    @if (tourneeFinie) {
+      <div class="tournee-finie">
+        <div class="finie-icon">🎉</div>
+        <strong>Tournée terminée !</strong>
+        <p>Tous les bacs ont été collectés.</p>
+        <a [routerLink]="['/agent/tournee', tourneeId]" class="btn btn-primary">
+          Retour à la tournée
+        </a>
+      </div>
+    }
+
+    <!-- Alerte proximité bac -->
+    @if (proximiteAlert && bacProche && !tourneeFinie) {
+      <div class="proximity-alert">
+        <div class="alert-icon">📍</div>
+        <div class="alert-info">
+          <strong>Bac à proximité !</strong>
+          @if (bacProche.codeBac) { <span class="alert-code">{{ bacProche.codeBac }}</span> }
+          @if (bacProche.niveauRemplissage !== undefined) {
+            <span class="alert-niveau">{{ bacProche.niveauRemplissage }}% rempli</span>
+          }
+          @if (bacProche.distanceMetres !== undefined) {
+            <span class="alert-dist">{{ bacProche.distanceMetres }} m</span>
+          }
+        </div>
+        <button class="btn btn-success btn-full" (click)="validerCollecte(bacProche.bacId ?? bacProche._id)">
+          ✅ Valider la collecte
+        </button>
+      </div>
+    }
+
+    <!-- Prochain bac -->
+    @if (prochainBac && !tourneeFinie) {
+      <div class="next-bac-card">
+        <div class="next-bac-label">Prochain bac</div>
+        <div class="next-bac-code">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M9 3V4H4V6H5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V6H20V4H15V3H9Z"/>
+          </svg>
+          {{ prochainBac.codeBac }}
+        </div>
+        <div class="next-bac-niveau">
+          Remplissage :
+          <strong [style.color]="prochainBac.niveauRemplissage >= 80 ? '#ef4444' : prochainBac.niveauRemplissage >= 40 ? '#f59e0b' : '#22c55e'">
+            {{ prochainBac.niveauRemplissage }}%
+          </strong>
+        </div>
+        <div class="next-bac-distance">
+          <span>📏 {{ distanceKm }} km</span>
+          <span>⏱ {{ tempsMin }} min</span>
+        </div>
+      </div>
+    }
+
+    <!-- Progression -->
+    <div class="progression-card">
+      <div class="prog-header">
+        <span>Bacs collectés</span>
+        <strong>{{ bacsDejaCollectes.length }} / {{ totalBacs }}</strong>
+      </div>
+      <div class="prog-bar">
+        <div class="prog-fill" [style.width.%]="progressionPct"></div>
+      </div>
+      <div class="prog-pct">{{ progressionPct }}%</div>
+    </div>
+
+    <!-- Bouton navigation réel -->
+    @if (!tourneeFinie) {
+      <button class="btn btn-primary btn-full"
+              (click)="calculerProchaineEtape()"
+              [disabled]="navLoading || !positionActuelle || simAutoActif">
+        @if (navLoading && !simAutoActif) {
+          <span class="btn-spinner"></span> Calcul en cours…
+        } @else {
+          🗺 {{ prochainBac ? 'Recalculer le trajet' : 'Démarrer la navigation' }}
+        }
+      </button>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- PANNEAU SIMULATION — démonstration investisseurs                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="sim-section">
+      <button class="sim-toggle" (click)="toggleSimulation()" [class.sim-active]="modeSimulation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        {{ modeSimulation ? 'Masquer la simulation' : '🎬 Mode Simulation' }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"
+             [style.transform]="modeSimulation ? 'rotate(180deg)' : 'none'" style="transition:.2s;margin-left:auto">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      @if (modeSimulation) {
+        <div class="sim-panel">
+
+          <!-- Description -->
+          <p class="sim-desc">
+            Simulez la navigation en l'absence de GPS réel.
+            Idéal pour les démonstrations.
+          </p>
+
+          <!-- Étape en cours (démo auto) -->
+          @if (simEtape) {
+            <div class="sim-etape-badge">
+              @if (simAutoActif) { <span class="sim-dot-anim"></span> }
+              {{ simEtape }}
+            </div>
+          }
+
+          <!-- Barre de progression des étapes (démo auto) -->
+          @if (simAutoActif && simEtapeNum > 0) {
+            <div class="sim-steps">
+              @for (step of [
+                { n: 1, label: 'Position' },
+                { n: 2, label: 'Calcul' },
+                { n: 3, label: 'Trajet' },
+                { n: 4, label: 'Proximité' },
+                { n: 5, label: 'Collecte' }
+              ]; track step.n) {
+                <div class="sim-step" [class.sim-step-done]="simEtapeNum > step.n"
+                     [class.sim-step-active]="simEtapeNum === step.n">
+                  <div class="sim-step-dot">
+                    @if (simEtapeNum > step.n) { ✓ } @else { {{ step.n }} }
+                  </div>
+                  <span>{{ step.label }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Boutons individuels -->
+          <div class="sim-buttons">
+
+            <!-- Btn 1 : Position -->
+            <button class="sim-btn" (click)="simulerPosition()" [disabled]="simAutoActif">
+              <span class="sim-btn-icon">📍</span>
+              <div class="sim-btn-text">
+                <strong>Simuler ma position</strong>
+                <small>Place le marqueur 🚛 sur la carte</small>
+              </div>
+            </button>
+
+            <!-- Btn 2 : Déplacement -->
+            <button class="sim-btn" (click)="simulerDeplacement()" [disabled]="simAutoActif || !chemin.length">
+              <span class="sim-btn-icon">🚛</span>
+              <div class="sim-btn-text">
+                <strong>Animer le déplacement</strong>
+                <small>Déplace le camion le long du trajet</small>
+              </div>
+            </button>
+
+            <!-- Btn 3 : Proximité -->
+            <button class="sim-btn" (click)="simulerProximite()" [disabled]="simAutoActif || !prochainBac">
+              <span class="sim-btn-icon">🔔</span>
+              <div class="sim-btn-text">
+                <strong>Simuler alerte proximité</strong>
+                <small>Déclenche la notification de bac proche</small>
+              </div>
+            </button>
+
+            <!-- Btn 4 : Démo complète -->
+            <button class="sim-btn sim-btn-demo" (click)="lancerDemoComplete()"
+                    [class.sim-btn-stop]="simAutoActif">
+              <span class="sim-btn-icon">{{ simAutoActif ? '⏹' : '⚡' }}</span>
+              <div class="sim-btn-text">
+                <strong>{{ simAutoActif ? 'Arrêter la démo' : 'Démo automatique complète' }}</strong>
+                <small>{{ simAutoActif ? 'Stoppe la simulation en cours' : 'Autopilote toute la tournée' }}</small>
+              </div>
+              @if (simAutoActif) {
+                <span class="sim-running-dot"></span>
+              }
+            </button>
+
+          </div>
+
+          <p class="sim-note">
+            💡 Ouvrez <strong>/admin/carte</strong> en parallèle pour voir le camion
+            se déplacer en temps réel sur la carte de l'administrateur.
+          </p>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

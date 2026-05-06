@@ -17,6 +17,7 @@ export class AgentLayout {
     { label: 'Mon planning',  icon: 'calendar', route: '/agent/dashboard'  },
     { label: 'Ma tournée',    icon: 'truck',    route: '/agent/tournee'    },
     { label: 'Incidents',     icon: 'alert',    route: '/agent/incidents'  },
+    { label: 'Mes Primes',    icon: 'trophy',   route: '/agent/primes'     },
   ];
 
   get currentUser() {

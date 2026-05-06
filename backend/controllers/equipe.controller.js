@@ -23,7 +23,7 @@ exports.getEquipes = async (req, res, next) => {
   try {
     // ADMIN → uniquement ses équipes | AGENT → les siennes (via getMesEquipes si besoin)
     const equipes = await Equipe.find(adminScope(req))
-      .populate('membres', 'name email')
+      .populate('membres', 'name email poste')
       .populate('vehiculeId', 'immatriculation statut')
       .lean();
     res.json({ success: true, count: equipes.length, data: equipes });
@@ -33,7 +33,7 @@ exports.getEquipes = async (req, res, next) => {
 exports.getEquipeById = async (req, res, next) => {
   try {
     const equipe = await Equipe.findOne({ _id: req.params.id, ...adminScope(req) })
-      .populate('membres', 'name email role')
+      .populate('membres', 'name email role poste')
       .populate('vehiculeId', 'immatriculation capacite statut')
       .lean();
     if (!equipe) return next(new AppError('Équipe non trouvée', 404));
@@ -62,7 +62,7 @@ exports.updateEquipe = async (req, res, next) => {
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('membres', 'name email')
+      .populate('membres', 'name email poste')
       .populate('vehiculeId', 'immatriculation statut')
       .lean();
     if (!equipe) return next(new AppError('Équipe non trouvée ou accès refusé', 404));
@@ -101,7 +101,7 @@ exports.addMembre = async (req, res, next) => {
       { _id: req.params.id, createdBy: req.user.id },
       { $addToSet: { membres: userId } },
       { new: true }
-    ).populate('membres', 'name email role').lean();
+    ).populate('membres', 'name email role poste').lean();
     if (!equipe) return next(new AppError('Équipe non trouvée ou accès refusé', 404));
     res.json({ success: true, data: equipe });
   } catch (error) { next(error); }
@@ -114,7 +114,7 @@ exports.removeMembre = async (req, res, next) => {
       { _id: req.params.id, createdBy: req.user.id },
       { $pull: { membres: req.params.userId } },
       { new: true }
-    ).populate('membres', 'name email role').lean();
+    ).populate('membres', 'name email role poste').lean();
     if (!equipe) return next(new AppError('Équipe non trouvée ou accès refusé', 404));
     res.json({ success: true, data: equipe });
   } catch (error) { next(error); }

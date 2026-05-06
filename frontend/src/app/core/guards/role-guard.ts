@@ -6,7 +6,8 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router     = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
-  if (!isPlatformBrowser(platformId)) return false;
+  // SSR : les routes protégées ont RenderMode.Client → jamais atteint côté serveur.
+  if (!isPlatformBrowser(platformId)) return true;
 
   const userStr = localStorage.getItem('user');
   if (!userStr) { router.navigate(['/login']); return false; }

@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { Router } from '@angular/router';
 import { CitoyenService } from '../../../core/services/citoyen.service';
 
 @Component({
   selector: 'app-suivi-requetes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './suivi-requetes.html',
   styleUrl: './suivi-requetes.scss',
 })
@@ -17,7 +18,7 @@ export class SuiviRequetes implements OnInit {
   filtered: any[] = [];
   loading         = true;
   filterStatut    = '';
-  selectedPlainte: any = null;
+  selectedPlainte: any = {};
 
   get stats() {
     return {

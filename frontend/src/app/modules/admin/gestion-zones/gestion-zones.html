@@ -96,14 +96,9 @@
 </div>
 
 <!-- ── Modal création / modification ─────────────────────────────────────── -->
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()"></div>
-  <div class="modal">
-    <div class="modal-header">
-      <h2>{{ isEdit ? 'Modifier la zone' : 'Nouvelle zone – ' + ville }}</h2>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal [title]="isEdit ? 'Modifier la zone' : 'Nouvelle zone – ' + ville"
+           [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
 
       <!-- Sélecteur d'arrondissement (uniquement à la création) -->
       @if (!isEdit && arrondissements.length > 0) {
@@ -139,5 +134,4 @@
         @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
       </button>
     </div>
-  </div>
-}
+</app-modal>

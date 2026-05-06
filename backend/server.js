@@ -1,6 +1,8 @@
+const http    = require('http');
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
+const cors    = require('cors');
+const helmet  = require('helmet');
+const { Server } = require('socket.io');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const swaggerUI = require('swagger-ui-express');
@@ -12,7 +14,48 @@ const connectDB = require('./config/db');
 const logger = require('./middlewares/logger.middleware');
 const { errorHandler, notFound } = require('./middlewares/error.middleware');
 
-const app = express();
+const app        = express();
+const httpServer = http.createServer(app);
+
+// ─── SOCKET.IO ────────────────────────────────────────────────────────────────
+const io = new Server(httpServer, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const allowed = [
+        /^http:\/\/localhost(:\d+)?$/,
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+        /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+      ];
+      if (allowed.some(re => re.test(origin))) return callback(null, true);
+      callback(new Error(`Socket.io CORS : origine non autorisée → ${origin}`));
+    },
+    credentials: true,
+  },
+});
+
+io.on('connection', socket => {
+  // L'admin rejoint une room privée pour recevoir les notifications
+  socket.on('join-admin', adminId => {
+    socket.join(`admin-${adminId}`);
+  });
+
+  // ── Tracking GPS véhicules (temps réel) ───────────────────────────────
+  // Le chauffeur émet sa position ; le serveur la redistribue à tous
+  socket.on('vehicule-position', data => {
+    socket.broadcast.emit('vehicule-position', data);
+  });
+
+  // ── Alerte proximité bac ───────────────────────────────────────────────
+  // Notifie l'admin en temps réel qu'un chauffeur approche d'un bac
+  socket.on('bac-proximity-alert', data => {
+    socket.broadcast.emit('bac-proximity-alert', data);
+  });
+});
+
+// Rend `io` accessible dans les contrôleurs via req.app.get('io')
+app.set('io', io);
 
 // ─── CONNEXION BASE DE DONNÉES ─────────────────────────────────────────────────
 connectDB();
@@ -47,7 +90,21 @@ app.use('/api/', globalLimiter);
 app.use('/api/auth', authLimiter);
 
 // ─── MIDDLEWARES DE BASE ───────────────────────────────────────────────────────
-app.use(cors());
+// CORS : autorise localhost, l'IP réseau locale et tout sous-réseau 192.168/10.x
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Postman / server-to-server
+    const allowed = [
+      /^http:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+      /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+      /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+    ];
+    if (allowed.some(re => re.test(origin))) return callback(null, true);
+    callback(new Error(`CORS : origine non autorisée → ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
@@ -67,6 +124,9 @@ app.use('/api/docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
   customSiteTitle: 'Gest_Ordure API Docs',
 }));
 
+// ─── FICHIERS STATIQUES (uploads) ─────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ─── ROUTES ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/auth.routes'));
 app.use('/api/users',     require('./routes/user.routes'));
@@ -78,7 +138,11 @@ app.use('/api/tournees',  require('./routes/tournee.routes'));
 app.use('/api/collectes', require('./routes/collecte.routes'));
 app.use('/api/plaintes',  require('./routes/plainte.routes'));
 app.use('/api/incidents', require('./routes/incident.routes'));
-app.use('/api/stats',     require('./routes/stats.routes'));
+app.use('/api/stats',        require('./routes/stats.routes'));
+app.use('/api/bacs',         require('./routes/bac.routes'));
+app.use('/api/performances',   require('./routes/performance.routes'));
+app.use('/api/decaissements', require('./routes/decaissement.routes'));
+app.use('/api/navigation',   require('./routes/navigation.routes'));
 
 // ─── ROUTE HEALTH CHECK ────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -93,7 +157,7 @@ app.use(errorHandler);
 
 // ─── DÉMARRAGE ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Serveur lancé sur le port ${PORT}`);
   console.log(`Documentation API : http://localhost:${PORT}/api/docs`);
   console.log(`Environnement : ${process.env.NODE_ENV || 'development'}`);

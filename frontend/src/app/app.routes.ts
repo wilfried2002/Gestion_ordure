@@ -39,8 +39,28 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/admin/gestion-tournees/gestion-tournees').then(m => m.GestionTournees),
       },
       {
+        path: 'plaintes',
+        loadComponent: () => import('./modules/admin/gestion-plaintes/gestion-plaintes').then(m => m.GestionPlaintes),
+      },
+      {
+        path: 'incidents',
+        loadComponent: () => import('./modules/admin/gestion-incidents/gestion-incidents').then(m => m.GestionIncidents),
+      },
+      {
         path: 'statistiques',
         loadComponent: () => import('./modules/admin/statistiques/statistiques').then(m => m.Statistiques),
+      },
+      {
+        path: 'bacs',
+        loadComponent: () => import('./modules/admin/gestion-bacs/gestion-bacs').then(m => m.GestionBacs),
+      },
+      {
+        path: 'carte',
+        loadComponent: () => import('./modules/admin/carte-ville/carte-ville').then(m => m.CarteVille),
+      },
+      {
+        path: 'primes',
+        loadComponent: () => import('./modules/admin/gestion-primes/gestion-primes').then(m => m.GestionPrimes),
       },
     ]
   },
@@ -66,6 +86,16 @@ export const routes: Routes = [
       {
         path: 'incidents',
         loadComponent: () => import('./modules/agent/incidents/incidents').then(m => m.Incidents),
+      },
+      {
+        path: 'primes',
+        loadComponent: () => import('./modules/agent/mes-primes/mes-primes').then(m => m.MesPrimes),
+      },
+      {
+        path: 'navigation/:id',
+        loadComponent: () =>
+          import('./modules/agent/navigation-tournee/navigation-tournee')
+            .then(m => m.NavigationTournee),
       },
     ]
   },
@@ -94,6 +124,10 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () => import('./pages/register/register').then(m => m.RegisterComponent),
   },
-  { path: '',   redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' },
+  {
+    path: '',
+    loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent),
+    pathMatch: 'full',
+  },
+  { path: '**', redirectTo: '' },
 ];

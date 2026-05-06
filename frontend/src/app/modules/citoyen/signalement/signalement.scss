@@ -87,6 +87,134 @@ $teal-xlight: #f0fdfa;
 .form-row { display: grid; gap: 1rem; }
 .cols-2 { grid-template-columns: 1fr 1fr; }
 
+/* ── Upload photos ──────────────────────────────────────────────────────── */
+.optional-badge {
+  font-size: .7rem; font-weight: 500; color: var(--text-muted);
+  background: #f1f5f9; border: 1px solid var(--border);
+  border-radius: 12px; padding: 1px 8px; margin-left: .5rem;
+}
+
+.upload-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .5rem; padding: 2rem 1rem;
+  border: 2px dashed var(--border); border-radius: 12px;
+  background: #f8fafc; cursor: pointer; transition: all .15s;
+  color: var(--text-muted); text-align: center;
+  svg { color: #94a3b8; }
+  &:hover { border-color: $teal; background: $teal-xlight; svg { color: $teal; } }
+  &.has-photos { padding: 1rem; }
+}
+.upload-label { font-size: .9rem; font-weight: 500; color: var(--text); }
+.upload-hint  { font-size: .75rem; color: var(--text-muted); }
+
+.photo-previews {
+  display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem;
+}
+.photo-thumb {
+  position: relative; width: 110px; height: 110px;
+  border-radius: 10px; overflow: hidden;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.photo-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,.55); color: #fff; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s;
+  &:hover { background: #ef4444; }
+}
+
+/* ── Caméra temps réel ──────────────────────────────────────────────────── */
+.camera-error {
+  display: flex; align-items: center; gap: .5rem;
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 8px; padding: .65rem 1rem;
+  font-size: .85rem; color: #b91c1c; margin-bottom: .75rem;
+  svg { flex-shrink: 0; }
+}
+
+.camera-open-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .4rem; width: 100%; padding: 1.75rem 1rem;
+  border: 2px dashed var(--border); border-radius: 12px;
+  background: #f8fafc; cursor: pointer; transition: all .15s;
+  color: var(--text-muted); text-align: center;
+  svg { color: #64748b; transition: color .15s; }
+  span { font-size: .9rem; font-weight: 600; color: var(--text); }
+  small { font-size: .72rem; color: var(--text-muted); }
+  &:hover {
+    border-color: $teal; background: $teal-xlight;
+    svg { color: $teal; }
+  }
+}
+
+/* ── Modale caméra ──────────────────────────────────────────────────────── */
+.camera-backdrop {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,.65);
+}
+.camera-modal {
+  position: fixed; z-index: 1201;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(480px, 96vw);
+  background: #0f0f0f; border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+}
+.camera-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1rem;
+  background: rgba(255,255,255,.06);
+  color: #fff; font-size: .9rem; font-weight: 600;
+}
+.camera-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.1); border: none;
+  color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+  &:hover { background: rgba(255,255,255,.25); }
+}
+.camera-viewport {
+  position: relative; background: #000; line-height: 0;
+  &.flash::after {
+    content: ''; position: absolute; inset: 0;
+    background: #fff; opacity: .7; animation: cam-flash .15s ease;
+  }
+}
+@keyframes cam-flash { to { opacity: 0; } }
+
+.camera-video {
+  width: 100%; max-height: 54vmin;
+  object-fit: cover; display: block;
+}
+.camera-ts-preview {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: .35rem .75rem;
+  background: linear-gradient(transparent, rgba(0,0,0,.55));
+  color: rgba(255,255,255,.75); font-size: .7rem; text-align: right;
+}
+.camera-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .9rem 1.25rem;
+  background: rgba(255,255,255,.04);
+}
+/* Déclencheur (bouton rond blanc) */
+.camera-shutter {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 3px solid #fff; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .1s;
+  &:hover .shutter-inner { background: rgba(255,255,255,.9); }
+  &:active { transform: scale(.93); }
+}
+.shutter-inner {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: #fff; transition: background .1s;
+}
+
 /* Actions */
 .sg-actions {
   display: flex; justify-content: flex-end; gap: .75rem;

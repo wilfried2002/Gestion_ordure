@@ -13,5 +13,6 @@ const collecteSchema = new mongoose.Schema({
 
 collecteSchema.index({ tourneeId: 1 });
 collecteSchema.index({ statut: 1 });
+collecteSchema.index({ agentId: 1 });
 
 module.exports = mongoose.model('Collecte', collecteSchema);

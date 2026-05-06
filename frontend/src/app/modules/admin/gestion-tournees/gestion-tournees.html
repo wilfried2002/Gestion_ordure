@@ -74,14 +74,9 @@
   }
 </div>
 
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()"></div>
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h2>{{ isEdit ? 'Modifier la tournée' : 'Planifier une tournée' }}</h2>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal [title]="isEdit ? 'Modifier la tournée' : 'Planifier une tournée'"
+           size="lg" [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
       <div class="form-row">
         <div class="form-group">
           <label>Date *</label>
@@ -158,11 +153,10 @@
         <textarea [(ngModel)]="form.notes" rows="3" placeholder="Instructions particulières…"></textarea>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
-      <button class="btn btn-primary" (click)="save()" [disabled]="saving">
-        @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
-      </button>
-    </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+    <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+      @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
+    </button>
   </div>
-}
+</app-modal>

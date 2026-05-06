@@ -1,144 +1,173 @@
 <div class="page-wrapper">
-  <div class="page-header">
+
+  <!-- ── En-tête ─────────────────────────────────────────────── -->
+  <div class="dash-hero">
     <div>
-      <h1 class="page-title">Rapports &amp; Statistiques</h1>
-      <p class="page-subtitle">Suivi des plaintes, incidents et performance des collectes</p>
+      <h1 class="page-title">Analytiques &amp; Tableaux de bord</h1>
+      <p class="page-subtitle">Visualisation professionnelle — données en temps réel</p>
+    </div>
+    <div class="hero-right">
+      @if (lastUpdate) {
+        <span class="last-update">
+          <span class="live-dot"></span>
+          Mis à jour : {{ lastUpdate | date:'HH:mm:ss' }}
+        </span>
+      }
+      <button class="btn btn-primary btn-sm" (click)="fetchAndRender()" [disabled]="loading">
+        @if (loading) {
+          <span class="btn-spinner"></span> Chargement…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+          </svg>
+          Actualiser
+        }
+      </button>
     </div>
   </div>
 
-  @if (loading) {
-    <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
-  } @else {
-
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-green">
-        <span class="kpi-value">{{ stats.totalTournees }}</span>
-        <span class="kpi-label">Tournées totales</span>
-        <span class="kpi-sub">{{ stats.tourneesTerminees }} terminées · {{ stats.tourneesEnCours }} en cours</span>
-      </div>
-      <div class="kpi-card kpi-blue">
-        <span class="kpi-value">{{ stats.totalPlaintes }}</span>
-        <span class="kpi-label">Plaintes reçues</span>
-        <span class="kpi-sub">{{ stats.plaintesResolues }} résolues · {{ stats.plaintesEnAttente }} en attente</span>
-      </div>
-      <div class="kpi-card kpi-orange">
-        <span class="kpi-value">{{ stats.totalIncidents }}</span>
-        <span class="kpi-label">Incidents signalés</span>
-        <span class="kpi-sub">{{ stats.incidentsGraves }} graves ou critiques</span>
-      </div>
-      <div class="kpi-card kpi-purple">
-        <span class="kpi-value">{{ pct(stats.tourneesTerminees, stats.totalTournees) }}%</span>
-        <span class="kpi-label">Taux de complétion</span>
-        <span class="kpi-sub">Tournées terminées / total</span>
-      </div>
-    </div>
-
-    <!-- Barres de progression -->
-    <div class="progress-section">
-      <div class="progress-card">
-        <h3>Répartition des plaintes</h3>
-        <div class="progress-item">
-          <div class="progress-label">
-            <span>Résolues</span>
-            <span>{{ stats.plaintesResolues }} ({{ pct(stats.plaintesResolues, stats.totalPlaintes) }}%)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill fill-green" [style.width.%]="pct(stats.plaintesResolues, stats.totalPlaintes)"></div>
-          </div>
-        </div>
-        <div class="progress-item">
-          <div class="progress-label">
-            <span>En cours</span>
-            <span>{{ stats.plaintesEnCours }} ({{ pct(stats.plaintesEnCours, stats.totalPlaintes) }}%)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill fill-blue" [style.width.%]="pct(stats.plaintesEnCours, stats.totalPlaintes)"></div>
-          </div>
-        </div>
-        <div class="progress-item">
-          <div class="progress-label">
-            <span>En attente</span>
-            <span>{{ stats.plaintesEnAttente }} ({{ pct(stats.plaintesEnAttente, stats.totalPlaintes) }}%)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill fill-orange" [style.width.%]="pct(stats.plaintesEnAttente, stats.totalPlaintes)"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="progress-card">
-        <h3>Statut des tournées</h3>
-        <div class="progress-item">
-          <div class="progress-label">
-            <span>Terminées</span>
-            <span>{{ stats.tourneesTerminees }} ({{ pct(stats.tourneesTerminees, stats.totalTournees) }}%)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill fill-green" [style.width.%]="pct(stats.tourneesTerminees, stats.totalTournees)"></div>
-          </div>
-        </div>
-        <div class="progress-item">
-          <div class="progress-label">
-            <span>En cours</span>
-            <span>{{ stats.tourneesEnCours }} ({{ pct(stats.tourneesEnCours, stats.totalTournees) }}%)</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill fill-blue" [style.width.%]="pct(stats.tourneesEnCours, stats.totalTournees)"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tableaux -->
-    <div class="tables-grid">
-
-      <!-- Dernières plaintes -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Dernières plaintes</h2>
-        </div>
-        @if (plaintes.length === 0) {
-          <div class="empty-state"><p>Aucune plainte.</p></div>
-        } @else {
-          <table class="table">
-            <thead><tr><th>Sujet</th><th>Date</th><th>Statut</th></tr></thead>
-            <tbody>
-              @for (p of plaintes.slice(0, 8); track p._id) {
-                <tr>
-                  <td class="td-truncate">{{ p.sujet }}</td>
-                  <td>{{ formatDate(p.createdAt) }}</td>
-                  <td><span [class]="plainteClass(p.statut)">{{ p.statut }}</span></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      </div>
-
-      <!-- Derniers incidents -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Derniers incidents</h2>
-        </div>
-        @if (incidents.length === 0) {
-          <div class="empty-state"><p>Aucun incident.</p></div>
-        } @else {
-          <table class="table">
-            <thead><tr><th>Description</th><th>Gravité</th><th>Date</th></tr></thead>
-            <tbody>
-              @for (i of incidents.slice(0, 8); track i._id) {
-                <tr>
-                  <td class="td-truncate">{{ i.description }}</td>
-                  <td><span [class]="graviteClass(i.gravite)">{{ i.gravite || '—' }}</span></td>
-                  <td>{{ formatDate(i.createdAt) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      </div>
-
+  <!-- ── Skeleton ─────────────────────────────────────────────── -->
+  @if (loading && !lastUpdate) {
+    <div class="skeleton-grid">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="skel-card"><div class="skel-bar"></div></div>
+      }
     </div>
   }
+
+  <!-- ════════════════════════════════════════════
+       1. Performance des agents — Bar chart groupé
+  ════════════════════════════════════════════ -->
+  <div class="chart-card" [class.refreshing]="loading && !!lastUpdate">
+    <div class="chart-header">
+      <div class="chart-meta">
+        <div class="chart-icon agents-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="chart-title">Performance des agents</h2>
+          <p class="chart-sub">Collectes effectuées &amp; volume (m³) par agent · Auto-refresh 30s</p>
+        </div>
+      </div>
+      <span class="badge-type badge-bar">Bar chart</span>
+    </div>
+    <div class="chart-body" style="height:320px">
+      <canvas #agentsCanvas></canvas>
+    </div>
+    @if (!data.agentsPerformance?.length && !loading) {
+      <div class="empty-overlay">Aucune collecte enregistrée</div>
+    }
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       2 & 3. Doughnut + Pie côte à côte
+  ════════════════════════════════════════════ -->
+  <div class="charts-row-2">
+
+    <!-- 2. Utilisation des camions — Doughnut -->
+    <div class="chart-card" [class.refreshing]="loading && !!lastUpdate">
+      <div class="chart-header">
+        <div class="chart-meta">
+          <div class="chart-icon truck-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="chart-title">Utilisation des camions</h2>
+            <p class="chart-sub">Tournées par véhicule — équilibrage de charge</p>
+          </div>
+        </div>
+        <span class="badge-type badge-donut">Doughnut</span>
+      </div>
+      <div class="chart-body" style="height:260px">
+        <canvas #vehiculesCanvas></canvas>
+      </div>
+      @if (!data.vehiculesUtilisation?.length && !loading) {
+        <div class="empty-overlay">Aucune tournée avec véhicule</div>
+      }
+    </div>
+
+    <!-- 3. Statut des collectes — Pie -->
+    <div class="chart-card" [class.refreshing]="loading && !!lastUpdate">
+      <div class="chart-header">
+        <div class="chart-meta">
+          <div class="chart-icon check-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="chart-title">Statut des collectes</h2>
+            <p class="chart-sub">Répartition Collecté / En cours / Planifié</p>
+          </div>
+        </div>
+        <span class="badge-type badge-pie">Pie chart</span>
+      </div>
+      <div class="chart-body" style="height:260px">
+        <canvas #statutCanvas></canvas>
+      </div>
+      @if (!data.collectesStatut && !loading) {
+        <div class="empty-overlay">Aucune collecte</div>
+      }
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       4. Collectes par jour — Line chart
+  ════════════════════════════════════════════ -->
+  <div class="chart-card" [class.refreshing]="loading && !!lastUpdate">
+    <div class="chart-header">
+      <div class="chart-meta">
+        <div class="chart-icon line-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="chart-title">Activité quotidienne des collectes</h2>
+          <p class="chart-sub">Nombre de collectes par jour sur les 30 derniers jours</p>
+        </div>
+      </div>
+      <span class="badge-type badge-line">Courbe</span>
+    </div>
+    <div class="chart-body" style="height:280px">
+      <canvas #dailyCanvas></canvas>
+    </div>
+    @if (!data.collectesParJour?.length && !loading) {
+      <div class="empty-overlay">Aucune collecte ces 30 derniers jours</div>
+    }
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       5. Signalements par zone — Bar chart
+  ════════════════════════════════════════════ -->
+  <div class="chart-card" [class.refreshing]="loading && !!lastUpdate">
+    <div class="chart-header">
+      <div class="chart-meta">
+        <div class="chart-icon zone-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="chart-title">Signalements citoyens par zone</h2>
+          <p class="chart-sub">Zones à forte densité de plaintes — aide à la décision terrain</p>
+        </div>
+      </div>
+      <span class="badge-type badge-zone">Bar chart</span>
+    </div>
+    <div class="chart-body" style="height:300px">
+      <canvas #zonesCanvas></canvas>
+    </div>
+    @if (!data.signalParZone?.length && !loading) {
+      <div class="empty-overlay">Aucun signalement avec zone associée</div>
+    }
+  </div>
+
 </div>

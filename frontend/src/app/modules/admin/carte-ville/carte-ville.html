@@ -1,0 +1,182 @@
+<div class="carte-wrapper">
+
+  <!-- ── Barre de contrôle ── -->
+  <div class="carte-controls">
+
+    <!-- Stats rapides (calculées sur les bacs actuellement affichés) -->
+    <div class="stat-pills">
+      <span class="pill pill-total">
+        {{ bacs.length }} / {{ statsBacs.total }} bacs
+      </span>
+      <span class="pill pill-plein">{{ bacsPleins }} pleins</span>
+      <span class="pill pill-moyen">{{ bacsMoyens }} moyens</span>
+      <span class="pill pill-vide">{{ bacsVides }} vides</span>
+      <span class="pill pill-total">{{ vehicules.length }} camions</span>
+    </div>
+
+    <!-- Filtres -->
+    <div class="controls-row">
+      <select [(ngModel)]="filtreStatut" (change)="appliquerFiltres()">
+        <option value="">Tous statuts</option>
+        <option value="Plein">🔴 Plein (&ge;80%)</option>
+        <option value="Moyen">🟡 Moyen (40-79%)</option>
+        <option value="Vide">🟢 Vide (&lt;40%)</option>
+      </select>
+
+      <select [(ngModel)]="filtreZoneId" (change)="appliquerFiltres()">
+        <option value="">Toutes les zones</option>
+        @for (z of zones; track z._id) {
+          <option [value]="z._id">{{ z.nom }}</option>
+        }
+      </select>
+
+      <!-- Réinitialiser les filtres -->
+      @if (filtreStatut || filtreZoneId) {
+        <button class="reset-filters-btn" (click)="resetFiltres()" title="Réinitialiser les filtres">
+          ✕ Réinitialiser
+        </button>
+      }
+
+      <!-- Couches -->
+      <button class="layer-btn" [class.active]="afficherBacs"      (click)="toggleCouche('bacs')">
+        🗑️ Bacs
+      </button>
+      <button class="layer-btn" [class.active]="afficherVehicules" (click)="toggleCouche('vehicules')">
+        🚛 Camions
+      </button>
+      @if (tourneeResult) {
+        <button class="layer-btn" [class.active]="afficherRoute"   (click)="toggleCouche('route')">
+          🗺 Route
+        </button>
+      }
+    </div>
+
+    <!-- Avertissement véhicules sans GPS -->
+    @if (noGpsCount > 0) {
+      <div class="no-gps-warning">
+        ⚠️ {{ noGpsCount }} véhicule{{ noGpsCount > 1 ? 's' : '' }} en tournée sans GPS
+        — icône grise sur la carte — allez dans <strong>Gestion véhicules → Modifier</strong>
+      </div>
+    }
+
+    <!-- Optimisation TSP -->
+    <div class="tsp-row">
+      <label>Bacs ≥</label>
+      <input type="number" [(ngModel)]="niveauMin" min="0" max="100" style="width:64px">
+      <label>% remplis</label>
+      <button class="btn-optimize" (click)="optimiserTournee()" [disabled]="tourneeLoading">
+        <span class="spinner-sm" [style.display]="tourneeLoading ? 'inline-block' : 'none'"></span>
+        {{ tourneeLoading ? 'Calcul…' : '⚡ Optimiser la tournée' }}
+      </button>
+    </div>
+
+    <!-- Résultat TSP -->
+    @if (tourneeResult) {
+      <div class="tsp-result">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        @if ((tourneeResult.route?.length ?? tourneeResult.nbBacs ?? 0) === 0) {
+          <span>Aucun bac ≥ {{ niveauMin }}% — réduisez le seuil ou ajoutez des bacs</span>
+        } @else {
+          <strong>{{ tourneeResult.nbBacs ?? tourneeResult.route?.length }} bacs</strong> —
+          Distance estimée : <strong>{{ tourneeResult.distanceTotaleKm }} km</strong>
+        }
+        <button class="clear-btn" (click)="tourneeResult = null; loadData()">✕ Effacer</button>
+      </div>
+    }
+
+    <!-- ── Simulation Véhicule (démo investisseurs) ── -->
+    <div class="sim-vehicule-panel">
+      <button class="btn-sim-vehicule" (click)="simulerVehicule()"
+              [class.sim-vehicule-stop]="simVehiculeActif">
+        <span class="sim-v-dot" [style.display]="simVehiculeActif ? 'inline-block' : 'none'"></span>
+        <span class="btn-sim-label">
+          {{ simVehiculeActif ? (simVehiculeEtape || 'Simulation en cours…') : '🎬 Simuler un véhicule GPS' }}
+        </span>
+        <strong [style.display]="simVehiculeActif ? 'inline' : 'none'"> — Arrêter</strong>
+      </button>
+    </div>
+
+    <!-- ── Optimisation Dijkstra ── -->
+    <div class="dijkstra-panel">
+      <div class="dijkstra-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="3"/><path d="M3 12h3m12 0h3M12 3v3m0 12v3"/>
+          <path d="M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"/>
+        </svg>
+        <span>Optimisation Dijkstra</span>
+      </div>
+
+      <div class="dijkstra-form">
+        <label>Critère</label>
+        <select [(ngModel)]="criterium" class="dijkstra-select">
+          <option value="distance">Distance minimale</option>
+          <option value="temps">Temps minimal</option>
+          <option value="priorite">Priorité bacs pleins</option>
+        </select>
+      </div>
+
+      <button class="btn-dijkstra" (click)="lancerDijkstra()" [disabled]="dijkstraLoading">
+        <span class="spinner-sm" [style.display]="dijkstraLoading ? 'inline-block' : 'none'"></span>
+        {{ dijkstraLoading ? 'Calcul…' : "🗺 Calculer l'itinéraire" }}
+      </button>
+
+      @if (dijkstraResult) {
+        <div class="dijkstra-result">
+          @if (dijkstraResult.nbBacs === 0) {
+            <span class="dij-empty">Aucun bac ≥ {{ niveauMin }}%</span>
+          } @else {
+            <span class="dij-stat">📍 <strong>{{ dijkstraResult.nbBacs }}</strong> bacs</span>
+            <span class="dij-stat">📏 <strong>{{ dijkstraResult.totalDistanceKm }}</strong> km</span>
+            <span class="dij-stat">⏱ <strong>{{ dijkstraResult.totalTempsMin }}</strong> min</span>
+          }
+          <button class="clear-btn" (click)="effacerDijkstra()">✕ Effacer</button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Carte Leaflet ── -->
+  <div class="map-area">
+    @if (loading) {
+      <div class="map-loading">
+        <div class="spinner"></div>
+        <p>Chargement de la carte…</p>
+      </div>
+    }
+    @if (errorMsg) {
+      <div class="map-error">{{ errorMsg }}</div>
+    }
+    <div #mapContainer class="gmap-container"></div>
+  </div>
+
+  <!-- ── Légende ── -->
+  <div class="legend">
+    <span class="legend-title">Légende</span>
+    <!-- Bacs — pins colorés -->
+    <span class="legend-pin-wrap">
+      <span class="legend-pin-dot" style="background:#ef4444"></span>
+      <span class="legend-pin-arrow" style="border-top-color:#ef4444"></span>
+    </span> Plein (&ge;80%)
+    <span class="legend-pin-wrap">
+      <span class="legend-pin-dot" style="background:#f59e0b"></span>
+      <span class="legend-pin-arrow" style="border-top-color:#f59e0b"></span>
+    </span> Moyen (40–79%)
+    <span class="legend-pin-wrap">
+      <span class="legend-pin-dot" style="background:#22c55e"></span>
+      <span class="legend-pin-arrow" style="border-top-color:#22c55e"></span>
+    </span> Vide (&lt;40%)
+    <!-- Camion -->
+    <span class="legend-vehicule">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+        <path d="M1 3H16V13H1V3M16 5.5H19L22 8.5V13H16V5.5M5.5 13.5A2.5 2.5 0 0 1 8 16A2.5 2.5 0 0 1 5.5 18.5A2.5 2.5 0 0 1 3 16A2.5 2.5 0 0 1 5.5 13.5M18.5 13.5A2.5 2.5 0 0 1 21 16A2.5 2.5 0 0 1 18.5 18.5A2.5 2.5 0 0 1 16 16A2.5 2.5 0 0 1 18.5 13.5Z"/>
+      </svg>
+      Camion
+    </span>
+    @if (tourneeResult) {
+      <span class="legend-line"></span> Itinéraire
+    }
+  </div>
+
+</div>

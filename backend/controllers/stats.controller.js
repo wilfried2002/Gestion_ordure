@@ -4,6 +4,7 @@ const Vehicule = require('../models/Vehicule');
 const Zone     = require('../models/Zone');
 const Tournee  = require('../models/Tournee');
 const Plainte  = require('../models/Plainte');
+const Collecte = require('../models/Collecte');
 
 exports.getDashboardStats = async (req, res, next) => {
   try {
@@ -63,4 +64,109 @@ exports.getDashboardStats = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+// ── Analytics pour les graphiques ─────────────────────────────────────────
+
+exports.getAnalytics = async (req, res, next) => {
+  try {
+    const adminId = new mongoose.Types.ObjectId(req.user.id);
+
+    // Période : 30 derniers jours pour le graphique journalier
+    const since30 = new Date();
+    since30.setDate(since30.getDate() - 30);
+
+    const [
+      agentsPerf,
+      vehiculesUtil,
+      collectesStatut,
+      collectesParJour,
+      signalParZone,
+    ] = await Promise.all([
+
+      // 1) Performance agents : nb collectes + volume par agent
+      Collecte.aggregate([
+        { $match: { statut: 'Collecté' } },
+        { $lookup: { from: 'tournees', localField: 'tourneeId', foreignField: '_id', as: 't' } },
+        { $unwind: '$t' },
+        { $match: { 't.createdBy': adminId } },
+        { $group: {
+          _id: '$agentId',
+          nbCollectes:  { $sum: 1 },
+          volumeTotal:  { $sum: '$volume' },
+        }},
+        { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'agent' } },
+        { $unwind: { path: '$agent', preserveNullAndEmpty: true } },
+        { $project: {
+          agentName:   { $ifNull: ['$agent.name', 'Inconnu'] },
+          nbCollectes: 1,
+          volumeTotal: { $round: ['$volumeTotal', 1] },
+        }},
+        { $sort: { nbCollectes: -1 } },
+        { $limit: 10 },
+      ]),
+
+      // 2) Utilisation des véhicules : nb tournées par camion
+      Tournee.aggregate([
+        { $match: { createdBy: adminId, vehiculeId: { $ne: null } } },
+        { $group: { _id: '$vehiculeId', nbTournees: { $sum: 1 } } },
+        { $lookup: { from: 'vehicules', localField: '_id', foreignField: '_id', as: 'v' } },
+        { $unwind: { path: '$v', preserveNullAndEmpty: true } },
+        { $project: {
+          immatriculation: { $ifNull: ['$v.immatriculation', 'N/A'] },
+          nbTournees: 1,
+        }},
+        { $sort: { nbTournees: -1 } },
+      ]),
+
+      // 3) Statut des collectes (pour cet admin)
+      Collecte.aggregate([
+        { $lookup: { from: 'tournees', localField: 'tourneeId', foreignField: '_id', as: 't' } },
+        { $unwind: '$t' },
+        { $match: { 't.createdBy': adminId } },
+        { $group: { _id: '$statut', count: { $sum: 1 } } },
+      ]),
+
+      // 4) Collectes par jour (30 derniers jours)
+      Collecte.aggregate([
+        { $lookup: { from: 'tournees', localField: 'tourneeId', foreignField: '_id', as: 't' } },
+        { $unwind: '$t' },
+        { $match: { 't.createdBy': adminId, createdAt: { $gte: since30 } } },
+        { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 },
+        }},
+        { $sort: { _id: 1 } },
+      ]),
+
+      // 5) Signalements citoyens par zone
+      Plainte.aggregate([
+        { $match: { zoneId: { $ne: null } } },
+        { $group: { _id: '$zoneId', nbSignalements: { $sum: 1 } } },
+        { $lookup: { from: 'zones', localField: '_id', foreignField: '_id', as: 'zone' } },
+        { $unwind: { path: '$zone', preserveNullAndEmpty: true } },
+        { $project: {
+          zoneNom: { $ifNull: ['$zone.nom', 'Zone inconnue'] },
+          nbSignalements: 1,
+        }},
+        { $sort: { nbSignalements: -1 } },
+        { $limit: 10 },
+      ]),
+    ]);
+
+    // Formater statut collectes en objet
+    const statutMap = { 'Collecté': 0, 'En cours': 0, 'Planifié': 0 };
+    collectesStatut.forEach(({ _id, count }) => { if (_id) statutMap[_id] = count; });
+
+    res.json({
+      success: true,
+      data: {
+        agentsPerformance:   agentsPerf,
+        vehiculesUtilisation: vehiculesUtil,
+        collectesStatut:     statutMap,
+        collectesParJour:    collectesParJour.map(d => ({ date: d._id, count: d.count })),
+        signalParZone:       signalParZone,
+      },
+    });
+  } catch (error) { next(error); }
 };

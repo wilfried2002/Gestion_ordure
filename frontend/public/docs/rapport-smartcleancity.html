@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport Technique — SmartCleanCity</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+    font-size: 11pt; color: #1a1a2e; background: #f5f5f5;
+    line-height: 1.6;
+  }
+  a { color: #16a34a; }
+
+  /* ── Bouton de téléchargement ─────────────────────────────────────────── */
+  .download-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #1a1a2e; color: #fff; padding: .65rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .download-bar span { font-size: .9rem; opacity: .75; }
+  .btn-download {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: #16a34a; color: #fff; border: none; border-radius: 8px;
+    padding: .55rem 1.4rem; font-size: .875rem; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-download:hover { background: #15803d; }
+  .btn-download svg { flex-shrink: 0; }
+
+  /* ── Page document ────────────────────────────────────────────────────── */
+  .document {
+    max-width: 900px; margin: 4.5rem auto 2rem;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,.12);
+    border-radius: 4px;
+  }
+
+  /* ── Couverture ────────────────────────────────────────────────────────── */
+  .cover {
+    background: linear-gradient(150deg, #071a0e 0%, #0f2419 40%, #0a2e1f 70%, #061929 100%);
+    color: #fff; padding: 5rem 4rem 4rem; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(circle, rgba(22,163,74,.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .cover-logo {
+    width: 90px; height: 90px; margin: 0 auto 2rem;
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .cover h1 { font-size: 2.4rem; font-weight: 900; letter-spacing: -.02em; margin-bottom: .5rem; }
+  .cover h1 span { color: #86efac; }
+  .cover .subtitle { font-size: 1rem; opacity: .7; margin-bottom: 3rem; }
+  .cover-meta {
+    display: inline-flex; flex-direction: column; gap: .6rem;
+    text-align: left; background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px; padding: 1.5rem 2rem;
+  }
+  .cover-meta-row { display: flex; gap: .75rem; font-size: .85rem; }
+  .cover-meta-row strong { color: #86efac; min-width: 130px; }
+  .cover-meta-row span { opacity: .85; }
+
+  /* ── Contenu ──────────────────────────────────────────────────────────── */
+  .content { padding: 3rem 4rem; }
+
+  /* ── Table des matières ────────────────────────────────────────────────── */
+  .toc {
+    background: #f8fdf9; border: 1px solid #d1fae5;
+    border-left: 4px solid #16a34a; border-radius: 8px;
+    padding: 1.5rem 2rem; margin-bottom: 3rem;
+  }
+  .toc h2 { font-size: 1rem; color: #15803d; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: .06em; }
+  .toc ol { padding-left: 1.25rem; }
+  .toc li { margin: .3rem 0; font-size: .9rem; }
+  .toc a { color: #15803d; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol ol { padding-left: 1.25rem; list-style-type: lower-alpha; }
+
+  /* ── Sections ─────────────────────────────────────────────────────────── */
+  section { margin-bottom: 3rem; }
+  .section-title {
+    display: flex; align-items: center; gap: .75rem;
+    border-bottom: 2px solid #d1fae5; padding-bottom: .6rem; margin-bottom: 1.5rem;
+  }
+  .section-num {
+    background: #16a34a; color: #fff;
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 800;
+  }
+  h2.sec { font-size: 1.3rem; font-weight: 700; color: #0f2419; }
+  h3 { font-size: 1rem; font-weight: 700; color: #15803d; margin: 1.5rem 0 .6rem; }
+  h4 { font-size: .9rem; font-weight: 700; color: #374151; margin: 1rem 0 .4rem; }
+  p { margin-bottom: .75rem; font-size: .92rem; color: #374151; }
+
+  /* ── Tables ────────────────────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: .82rem; }
+  thead tr { background: #0f2419; color: #fff; }
+  thead th { padding: .6rem .85rem; text-align: left; font-weight: 600; white-space: nowrap; }
+  tbody tr:nth-child(even) { background: #f0fdf4; }
+  tbody tr:hover { background: #dcfce7; }
+  tbody td { padding: .55rem .85rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  .method { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+  .get    { background: #dbeafe; color: #1d4ed8; }
+  .post   { background: #dcfce7; color: #15803d; }
+  .put    { background: #fef3c7; color: #92400e; }
+  .patch  { background: #ede9fe; color: #5b21b6; }
+  .delete { background: #fee2e2; color: #b91c1c; }
+
+  /* ── Blocs code ────────────────────────────────────────────────────────── */
+  pre {
+    background: #0f172a; color: #e2e8f0; border-radius: 8px;
+    padding: 1rem 1.25rem; font-size: .78rem; overflow-x: auto;
+    margin: .75rem 0 1.25rem; line-height: 1.5;
+    border-left: 3px solid #16a34a;
+  }
+  code { font-family: 'Consolas', 'Courier New', monospace; }
+  .inline-code {
+    background: #f1f5f9; color: #0f172a;
+    padding: 1px 5px; border-radius: 4px; font-size: .82rem;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* ── Alertes / callouts ────────────────────────────────────────────────── */
+  .callout {
+    border-radius: 8px; padding: .85rem 1.1rem; margin: .75rem 0 1.25rem;
+    font-size: .875rem; display: flex; gap: .6rem; align-items: flex-start;
+  }
+  .callout-icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+  .callout.info  { background: #eff6ff; border-left: 3px solid #3b82f6; color: #1e40af; }
+  .callout.ok    { background: #f0fdf4; border-left: 3px solid #16a34a; color: #15803d; }
+  .callout.warn  { background: #fffbeb; border-left: 3px solid #f59e0b; color: #92400e; }
+
+  /* ── Badges ────────────────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: .7rem; font-weight: 700; white-space: nowrap; margin: 1px;
+  }
+  .badge-green  { background: #dcfce7; color: #15803d; }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-orange { background: #ffedd5; color: #c2410c; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+  .badge-gray   { background: #f1f5f9; color: #475569; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ── Scénarios de test ─────────────────────────────────────────────────── */
+  .test-case {
+    border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 1.25rem; overflow: hidden;
+  }
+  .test-header {
+    background: #0f2419; color: #fff; padding: .6rem 1rem;
+    display: flex; align-items: center; gap: .75rem; font-size: .85rem; font-weight: 700;
+  }
+  .test-id { background: #16a34a; color: #fff; padding: 1px 8px; border-radius: 5px; font-size: .72rem; }
+  .test-priority { margin-left: auto; font-size: .72rem; }
+  .test-body { padding: .85rem 1rem; }
+  .test-row { display: flex; gap: .75rem; margin-bottom: .5rem; font-size: .85rem; }
+  .test-label { min-width: 110px; font-weight: 600; color: #6b7280; flex-shrink: 0; }
+  .test-val { color: #374151; }
+  .test-steps { margin: .5rem 0; }
+  .test-steps li { font-size: .82rem; color: #374151; margin: .2rem 0 .2rem 1.25rem; }
+  .test-result { background: #f0fdf4; border-top: 1px solid #d1fae5; padding: .6rem 1rem; font-size: .82rem; color: #15803d; }
+
+  /* ── Liste à puces stylée ─────────────────────────────────────────────── */
+  ul.styled { padding-left: 0; list-style: none; }
+  ul.styled li {
+    padding: .3rem 0 .3rem 1.4rem; font-size: .88rem; color: #374151;
+    position: relative;
+  }
+  ul.styled li::before {
+    content: '▸'; position: absolute; left: 0; color: #16a34a; font-size: .75rem; top: .4rem;
+  }
+
+  /* ── Architecture diagramme ────────────────────────────────────────────── */
+  .arch-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1rem 0;
+  }
+  .arch-box {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem;
+    border-top: 3px solid #16a34a;
+  }
+  .arch-box h4 { color: #0f2419; margin: 0 0 .5rem; font-size: .85rem; }
+  .arch-box ul { padding-left: 1.1rem; font-size: .78rem; color: #374151; }
+  .arch-box li { margin: .2rem 0; }
+
+  /* ── IoT schema ────────────────────────────────────────────────────────── */
+  .iot-flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: .75rem; flex-wrap: wrap; margin: 1.5rem 0; padding: 1.5rem;
+    background: #f8fdf9; border-radius: 10px; border: 1px solid #d1fae5;
+  }
+  .iot-node {
+    text-align: center; background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 10px; padding: .75rem 1rem; min-width: 110px;
+  }
+  .iot-node .iot-icon { font-size: 1.6rem; display: block; margin-bottom: .3rem; }
+  .iot-node span { font-size: .72rem; font-weight: 600; color: #374151; }
+  .iot-arrow { font-size: 1.2rem; color: #16a34a; font-weight: 700; }
+
+  /* ── Pied de page document ─────────────────────────────────────────────── */
+  .doc-footer {
+    background: #0f2419; color: rgba(255,255,255,.5);
+    padding: 1.5rem 4rem; font-size: .78rem;
+    display: flex; justify-content: space-between;
+  }
+
+  /* ── Print styles ──────────────────────────────────────────────────────── */
+  @media print {
+    body { background: #fff; font-size: 10pt; }
+    .download-bar { display: none !important; }
+    .document { box-shadow: none; margin: 0; max-width: 100%; }
+    .content { padding: 1.5cm 2cm; }
+    .cover { padding: 3cm 2cm 2cm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    section { page-break-inside: avoid; }
+    .test-case { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    pre { page-break-inside: avoid; font-size: 8pt; }
+    table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Barre de téléchargement ───────────────────────────────────────────── -->
+<div class="download-bar">
+  <span>SmartCleanCity · Rapport Technique Complet</span>
+  <button class="btn-download" onclick="window.print()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Télécharger en PDF
+  </button>
+</div>
+
+<div class="document">
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE DE COUVERTURE                                                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="cover">
+    <div class="cover-logo">
+      <svg viewBox="0 0 48 48" fill="none" width="52" height="52">
+        <circle cx="24" cy="24" r="24" fill="rgba(255,255,255,0.1)"/>
+        <path d="M14 20h20M17 20v-4h14v4M14 20l3.5 18h13L34 20" stroke="#86efac" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 26v8M24 26v8M28 26v8" stroke="#86efac" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>Smart<span>Clean</span>City</h1>
+    <p class="subtitle">Optimized Waste Management Platform</p>
+    <div class="cover-meta">
+      <div class="cover-meta-row"><strong>Type de document</strong><span>Rapport Technique Complet</span></div>
+      <div class="cover-meta-row"><strong>Projet</strong><span>Système de Gestion Intelligente des Déchets Urbains</span></div>
+      <div class="cover-meta-row"><strong>Concepteur</strong><span>NGANKOU WILFRIED LOÏC</span></div>
+      <div class="cover-meta-row"><strong>Technologies</strong><span>Angular 21 · Node.js/Express 5 · MongoDB · Socket.IO · Google Maps</span></div>
+      <div class="cover-meta-row"><strong>Version</strong><span>2.0 — 2026</span></div>
+      <div class="cover-meta-row"><strong>Contact</strong><span>ngankouwilfried8@gmail.com · +237 672 518 012</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── Table des matières ─────────────────────────────────────────────── -->
+    <div class="toc">
+      <h2>📋 Table des matières</h2>
+      <ol>
+        <li><a href="#s1">Présentation du projet</a></li>
+        <li><a href="#s2">Architecture technique</a></li>
+        <li><a href="#s3">Fonctionnalités détaillées</a>
+          <ol>
+            <li><a href="#s3a">Module Administrateur</a></li>
+            <li><a href="#s3b">Module Agent de collecte</a></li>
+            <li><a href="#s3c">Module Citoyen</a></li>
+            <li><a href="#s3d">Navigation GPS et optimisation</a></li>
+          </ol>
+        </li>
+        <li><a href="#s4">API REST — Référence complète</a></li>
+        <li><a href="#s5">Algorithmes d'optimisation</a></li>
+        <li><a href="#s6">Dispositifs IoT pour les bacs</a></li>
+        <li><a href="#s7">Communication temps réel (Socket.IO)</a></li>
+        <li><a href="#s8">Bibliothèques et dépendances</a></li>
+        <li><a href="#s9">Sécurité et middlewares</a></li>
+        <li><a href="#s10">Scénarios de test</a></li>
+      </ol>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s1">
+      <div class="section-title">
+        <div class="section-num">1</div>
+        <h2 class="sec">Présentation du projet</h2>
+      </div>
+
+      <p><strong>SmartCleanCity</strong> est une plateforme numérique complète conçue pour moderniser et optimiser la gestion des déchets urbains. Elle connecte trois catégories d'acteurs — administrateurs municipaux, agents de collecte terrain et citoyens — dans un écosystème digital unifié, couvrant l'intégralité du cycle de gestion des ordures : de la détection du remplissage d'un bac à la validation de la collecte, en passant par la planification intelligente des tournées.</p>
+
+      <p>Développée en 2025-2026, l'application répond aux enjeux spécifiques des villes africaines confrontées à une croissance urbaine rapide, un manque de digitalisation des processus terrain et une insuffisance dans la traçabilité des opérations de collecte.</p>
+
+      <h3>Objectifs principaux</h3>
+      <ul class="styled">
+        <li>Réduire le taux de bacs non collectés grâce au monitoring IoT en temps réel</li>
+        <li>Optimiser les trajets des camions via l'algorithme Dijkstra + amélioration 2-opt</li>
+        <li>Améliorer la transparence des opérations avec un tableau de bord analytique</li>
+        <li>Permettre aux citoyens de signaler les dépôts sauvages avec géolocalisation et photos</li>
+        <li>Centraliser la gestion des équipes, véhicules, zones et performances</li>
+        <li>Générer automatiquement les primes d'équipes selon les collectes effectuées</li>
+      </ul>
+
+      <h3>Rôles utilisateurs</h3>
+      <table>
+        <thead><tr><th>Rôle</th><th>Accès</th><th>Fonctionnalités clés</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-blue">ADMIN</span></td><td>Interface web complète</td><td>Gestion globale, statistiques, carte temps réel, optimisation Dijkstra</td></tr>
+          <tr><td><span class="badge badge-green">AGENT</span></td><td>Interface web mobile</td><td>Tournées, navigation GPS, incidents, primes</td></tr>
+          <tr><td><span class="badge badge-orange">CITOYEN</span></td><td>Interface web publique</td><td>Signalement de dépôts, suivi des plaintes, planning</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s2">
+      <div class="section-title">
+        <div class="section-num">2</div>
+        <h2 class="sec">Architecture technique</h2>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-box">
+          <h4>🖥 Frontend — Angular 21</h4>
+          <ul>
+            <li>Composants standalone</li>
+            <li>Server-Side Rendering (SSR)</li>
+            <li>Routing lazy-loading</li>
+            <li>Guards auth + rôles</li>
+            <li>Intercepteurs HTTP</li>
+            <li>Cache HTTP client (5 min)</li>
+            <li>Google Maps API</li>
+            <li>Socket.IO-client</li>
+            <li>Chart.js (graphiques)</li>
+          </ul>
+        </div>
+        <div class="arch-box">
+          <h4>⚙️ Backend — Node.js + Express 5</h4>
+          <ul>
+            <li>API REST ≥ 60 endpoints</li>
+            <li>JWT Authentication</li>
+            <li>Socket.IO (temps réel)</li>
+            <li>Mongoose ODM</li>
+            <li>Middleware sécurité</li>
+            <li>Cache mémoire 5 min</li>
+            <li>Upload multipart</li>
+            <li>Swagger API docs</li>
+            <li>Rate limiting</li>
+          </ul>
+        </div>
+        <div class="arch-box">
+          <h4>🗄 Base de données — MongoDB</h4>
+          <ul>
+            <li>12 collections Mongoose</li>
+            <li>Indexes optimisés</li>
+            <li>Pool connexions (50)</li>
+            <li>Hooks pre-save</li>
+            <li>Sanitize NoSQL injection</li>
+            <li>Timestamps automatiques</li>
+            <li>Validation côté schéma</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Flux de communication</h3>
+      <div class="iot-flow">
+        <div class="iot-node"><span class="iot-icon">🗑️</span><span>Capteurs IoT<br>Bacs</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">⚙️</span><span>API REST<br>Node.js</span></div>
+        <div class="iot-arrow">↕</div>
+        <div class="iot-node"><span class="iot-icon">🔴</span><span>Socket.IO<br>Temps réel</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">🖥️</span><span>Angular<br>Frontend</span></div>
+        <div class="iot-arrow">↕</div>
+        <div class="iot-node"><span class="iot-icon">🗺️</span><span>Google Maps<br>Carte</span></div>
+      </div>
+
+      <div class="callout ok">
+        <span class="callout-icon">✅</span>
+        <span><strong>Séparation des préoccupations :</strong> Chaque couche est isolée. Le frontend communique exclusivement via l'API REST et Socket.IO. Les algorithmes d'optimisation sont encapsulés dans <code class="inline-code">dijkstra.service.js</code>.</span>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s3">
+      <div class="section-title">
+        <div class="section-num">3</div>
+        <h2 class="sec">Fonctionnalités détaillées</h2>
+      </div>
+
+      <h3 id="s3a">3.1 Module Administrateur</h3>
+      <table>
+        <thead><tr><th>Fonctionnalité</th><th>Description</th><th>Données clés</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tableau de bord</strong></td><td>Vue synthétique des KPIs : tournées du jour, bacs pleins, incidents ouverts, volumes collectés. Graphiques Chart.js en barres et courbes. Refresh automatique toutes les 30 secondes.</td><td>Stats tournées, bacs, agents actifs</td></tr>
+          <tr><td><strong>Gestion des utilisateurs</strong></td><td>CRUD complet des comptes (Admin, Agent, Citoyen). Attribution des rôles et postes (Chauffeur / Collecteur). Activation/désactivation de comptes.</td><td>nom, email, rôle, poste, zone</td></tr>
+          <tr><td><strong>Gestion des zones</strong></td><td>Création des zones géographiques (arrondissements de Douala). Import en masse. Chaque zone est isolée par admin (multi-tenant).</td><td>nom, arrondissement</td></tr>
+          <tr><td><strong>Gestion des équipes</strong></td><td>Composition des équipes (membres agents), affectation d'un véhicule. Calcul automatique des performances mensuelles.</td><td>membres[], vehiculeId</td></tr>
+          <tr><td><strong>Gestion des véhicules</strong></td><td>CRUD véhicules avec suivi statut (Disponible / En tournée / En panne). Kilométrage, maintenance. Position GPS modifiable manuellement.</td><td>immatriculation, capacité, GPS</td></tr>
+          <tr><td><strong>Gestion des bacs IoT</strong></td><td>CRUD bacs avec coordonnées GPS, code unique, capacité en litres. Mise à jour manuelle ou IoT du niveau de remplissage. Statut auto-calculé (Vide/Moyen/Plein). Carte temps réel.</td><td>codeBac, lat, lng, niveauRemplissage</td></tr>
+          <tr><td><strong>Planification des tournées</strong></td><td>Création de tournées planifiées : date, équipe, zone, véhicule. Suivi du cycle de vie (Planifiée → En cours → Terminée). Historique complet.</td><td>date, equipeId, zoneId, statut</td></tr>
+          <tr><td><strong>Carte de la ville</strong></td><td>Carte interactive Google Maps affichant tous les bacs (colorés par niveau) et les véhicules en temps réel. Filtres par statut et zone. Optimisation TSP et Dijkstra intégrée.</td><td>Markers, polylines, temps réel</td></tr>
+          <tr><td><strong>Optimisation Dijkstra</strong></td><td>Calcul d'itinéraire multi-stops optimal depuis la carte admin. 3 critères : distance, temps, priorité bacs pleins. Affichage des segments numérotés.</td><td>criterium, orderedBacs, segments</td></tr>
+          <tr><td><strong>Gestion des plaintes</strong></td><td>Suivi des signalements citoyens. Changement de statut (En attente / En cours / Résolue). Réponse admin. Visualisation des photos.</td><td>type, description, photos, statut</td></tr>
+          <tr><td><strong>Gestion des incidents</strong></td><td>Suivi des incidents terrain déclarés par les agents. Gravité (Faible/Modérée/Élevée). Gestion du cycle de résolution.</td><td>description, gravite, agentId</td></tr>
+          <tr><td><strong>Statistiques avancées</strong></td><td>Analytics détaillées avec graphiques Chart.js : volumes collectés par mois, taux de remplissage moyen, performances par équipe, nombre de plaintes résolues.</td><td>Chart.js, cache 5 min</td></tr>
+          <tr><td><strong>Gestion des primes</strong></td><td>Configuration des taux de primes (FCFA/tournée, FCFA/collecte). Calcul automatique mensuel par équipe. Décaissements avec statuts (En attente / Décaissé / Annulé).</td><td>primeParTournee, primeParCollecte</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="s3b">3.2 Module Agent de collecte</h3>
+      <table>
+        <thead><tr><th>Fonctionnalité</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Dashboard personnel</strong></td><td>Aperçu des tournées du jour, bacs collectés, incidents créés, primes du mois.</td></tr>
+          <tr><td><strong>Mes tournées</strong></td><td>Liste des tournées assignées à l'agent. Démarrage (statut → En cours) et clôture (→ Terminée) depuis l'interface. Détail des bacs à collecter.</td></tr>
+          <tr><td><strong>Navigation GPS</strong></td><td>Page de navigation temps réel : carte Google Maps, marqueur camion animé, polyline itinéraire, calcul automatique du prochain bac via Dijkstra, alerte de proximité à 50m.</td></tr>
+          <tr><td><strong>Mode Simulation</strong></td><td>4 boutons de démonstration pour simuler : position GPS, déplacement animé du camion, alerte proximité bac, démo automatique complète (autopilote avec barre de progression 5 étapes).</td></tr>
+          <tr><td><strong>Validation de collecte</strong></td><td>Confirmation manuelle ou automatique (proximité) de la collecte d'un bac. Mise à jour de la progression de la tournée.</td></tr>
+          <tr><td><strong>Déclaration d'incidents</strong></td><td>Création d'incidents terrain (véhicule en panne, accident, bac endommagé) avec description, gravité et photos.</td></tr>
+          <tr><td><strong>Mes primes</strong></td><td>Historique des décaissements de primes avec montants, mois de référence et statuts.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="s3c">3.3 Module Citoyen</h3>
+      <table>
+        <thead><tr><th>Fonctionnalité</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Nouveau signalement</strong></td><td>Formulaire de signalement de dépôt sauvage ou de bac plein non collecté. Géolocalisation GPS automatique. Téléchargement de photos (max 3, format jpg/png/webp, 5 Mo max).</td></tr>
+          <tr><td><strong>Suivi des plaintes</strong></td><td>Liste de toutes les plaintes déposées avec statut en temps réel (En attente / En cours / Résolue) et réponse de l'administrateur.</td></tr>
+          <tr><td><strong>Planning de collecte</strong></td><td>Consultation du planning des tournées de collecte dans sa zone pour anticiper les jours de passage.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="s3d">3.4 Navigation GPS et optimisation des itinéraires</h3>
+      <p>C'est le module le plus complexe de l'application. Il combine géolocalisation temps réel, algorithmes de graphes et WebSockets pour offrir une navigation terrain professionnelle.</p>
+
+      <table>
+        <thead><tr><th>Étape</th><th>Description technique</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1. Démarrage de tournée</strong></td><td>L'agent ouvre sa tournée depuis <code class="inline-code">/agent/tournee/:id</code>, clique "Démarrer la navigation" → redirection vers <code class="inline-code">/agent/navigation/:id</code>.</td></tr>
+          <tr><td><strong>2. Initialisation carte</strong></td><td>Google Maps chargé dynamiquement, GPS watchPosition() démarré, connexion Socket.IO établie, écoute événement <code class="inline-code">bac-proximity-alert</code>.</td></tr>
+          <tr><td><strong>3. Calcul premier bac</strong></td><td>POST <code class="inline-code">/api/navigation/prochain-bac</code> avec position courante. Retour : bac le plus proche + chemin Dijkstra + temps estimé.</td></tr>
+          <tr><td><strong>4. Navigation</strong></td><td>Polyline rouge tracée sur la carte. Marqueur camion mis à jour toutes les 5 secondes via POST <code class="inline-code">/api/navigation/position</code>.</td></tr>
+          <tr><td><strong>5. Alerte proximité</strong></td><td>À moins de 50m d'un bac → alerte visuelle + vibration téléphone. Bouton "Valider la collecte" affiché.</td></tr>
+          <tr><td><strong>6. Validation et suite</strong></td><td>Bac marqué comme collecté localement. <code class="inline-code">bacsDejaCollectes[]</code> mis à jour. Nouveau calcul Dijkstra vers le bac suivant.</td></tr>
+          <tr><td><strong>7. Fin de tournée</strong></td><td>Quand tous les bacs sont collectés → écran "Tournée terminée !" affiché. Lien de retour vers la liste des tournées.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s4">
+      <div class="section-title">
+        <div class="section-num">4</div>
+        <h2 class="sec">API REST — Référence complète</h2>
+      </div>
+
+      <h3>Authentification</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method post">POST</span></td><td>/api/auth/login</td><td>—</td><td>Connexion. Retourne JWT + infos utilisateur</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/auth/register</td><td>—</td><td>Inscription nouvel utilisateur</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Utilisateurs</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method get">GET</span></td><td>/api/users</td><td>ADMIN</td><td>Lister tous les utilisateurs</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/users</td><td>ADMIN</td><td>Créer un utilisateur</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/users/:id</td><td>ADMIN</td><td>Détail utilisateur</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td>/api/users/:id</td><td>ADMIN</td><td>Modifier utilisateur</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td>/api/users/:id</td><td>ADMIN</td><td>Supprimer utilisateur</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Bacs (IoT)</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method get">GET</span></td><td>/api/bacs</td><td>ADMIN</td><td>Lister bacs (filtres: statut, zone)</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/bacs</td><td>ADMIN</td><td>Créer un bac avec coordonnées GPS</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td>/api/bacs/:id</td><td>ADMIN</td><td>Modifier bac</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td>/api/bacs/:id</td><td>ADMIN</td><td>Supprimer bac</td></tr>
+          <tr><td><span class="method patch">PATCH</span></td><td>/api/bacs/:id/niveau</td><td>ADMIN</td><td>Mettre à jour niveau IoT → émet <code class="inline-code">bac-niveau-update</code> Socket.IO</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/bacs/tournee-optimisee</td><td>ADMIN</td><td>Générer tournée optimisée par niveau (TSP)</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/bacs/stats</td><td>ADMIN</td><td>Statistiques bacs par zone et statut</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Tournées et Collectes</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method get">GET</span></td><td>/api/tournees</td><td>ADMIN</td><td>Lister toutes les tournées</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/tournees</td><td>ADMIN</td><td>Créer une tournée planifiée</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/tournees/agent/mes-tournees</td><td>AGENT</td><td>Tournées de l'agent connecté</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td>/api/tournees/:id/demarrer</td><td>AGENT</td><td>Passer statut → En cours</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td>/api/tournees/:id/terminer</td><td>AGENT</td><td>Passer statut → Terminée</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td>/api/collectes/:id/valider</td><td>AGENT/ADMIN</td><td>Valider point de collecte</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Navigation GPS (Optimisation Dijkstra)</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method post">POST</span></td><td>/api/navigation/itineraire</td><td>ADMIN/AGENT</td><td>Itinéraire multi-stops optimal (NN + 2-opt). Critères: distance / temps / priorité bacs pleins. Détection et suppression des outliers géographiques.</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/navigation/prochain-bac</td><td>AGENT</td><td>Prochain bac à collecter + chemin Dijkstra. Exclut les bacs déjà collectés.</td></tr>
+          <tr><td><span class="method post">POST</span></td><td>/api/navigation/position</td><td>AGENT</td><td>Tracking GPS temps réel. Détection proximité (50m). Émet vehicule-position et bac-proximity-alert.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Statistiques (cache 5 min)</h3>
+      <table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Rôle</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method get">GET</span></td><td>/api/stats/dashboard</td><td>ADMIN</td><td>KPIs dashboard, données Chart.js. Réponse mise en cache 5 min.</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/stats/analytics</td><td>ADMIN</td><td>Analytics détaillées. Réponse mise en cache 5 min.</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/performances</td><td>ADMIN</td><td>Performances équipes + config primes. Cache 5 min.</td></tr>
+          <tr><td><span class="method get">GET</span></td><td>/api/health</td><td>—</td><td>Health check serveur</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s5">
+      <div class="section-title">
+        <div class="section-num">5</div>
+        <h2 class="sec">Algorithmes d'optimisation</h2>
+      </div>
+
+      <p>L'optimisation des itinéraires est le cœur algorithmique de SmartCleanCity. Elle est implémentée entièrement en JavaScript natif dans <code class="inline-code">backend/services/dijkstra.service.js</code>, sans dépendance externe.</p>
+
+      <h3>5.1 Distance Haversine</h3>
+      <p>Formule de calcul de distance géographique entre deux points GPS. Utilisée dans tous les algorithmes d'optimisation.</p>
+      <pre><code>Entrées: lat1, lon1, lat2, lon2 (degrés décimaux)
+Rayon terrestre: R = 6 371 km
+dLat = (lat2 - lat1) × π/180
+dLon = (lon2 - lon1) × π/180
+a    = sin²(dLat/2) + cos(lat1) × cos(lat2) × sin²(dLon/2)
+dist = R × 2 × atan2(√a, √(1-a))
+Sortie: Distance en km (précision: ±5m)
+Complexité: O(1)</code></pre>
+
+      <h3>5.2 Min-Heap (File de priorité)</h3>
+      <p>Structure de données fondamentale pour Dijkstra, permettant d'extraire en O(log n) le nœud de coût minimum.</p>
+      <pre><code>Opérations:
+  push(priority, value) — Insertion + remontée (bubble-up)   : O(log n)
+  pop()                 — Extraction min + descente (sink-down): O(log n)
+
+Implémentation: Tableau indexé avec parent à (i-1)>>1, enfants à 2i+1 et 2i+2
+Avantage vs tableau trié: O(log n) insertion vs O(n)</code></pre>
+
+      <h3>5.3 Graphe K plus proches voisins</h3>
+      <p>Construction d'un graphe sparse pour éviter la complexité O(n²) d'un graphe complet.</p>
+      <pre><code>Entrée: nodes = [{id, latitude, longitude}], K = 6
+Pour chaque nœud A:
+  1. Calculer distance Haversine vers tous les autres nœuds
+  2. Trier par distance croissante
+  3. Conserver les K plus proches
+  4. Ajouter arêtes bidirectionnelles pondérées A↔Bi
+Sortie: graph = { nodeId: [{neighborId, weight(km)}] }
+Complexité: O(n² log n)   — acceptable pour n < 500 bacs</code></pre>
+
+      <h3>5.4 Algorithme de Dijkstra</h3>
+      <p>Chemin le plus court entre la position courante du camion et le prochain bac cible.</p>
+      <pre><code>Entrée: graph, startId, endId
+Initialisation: dist[all] = ∞, dist[start] = 0, heap.push(0, start)
+
+Boucle (while heap non vide):
+  (d, cur) ← heap.pop()
+  Si cur déjà visité → ignorer
+  Marquer cur comme visité
+  Si cur == end → sortir (chemin trouvé)
+  Pour chaque voisin non visité:
+    nd = d + poids(cur, voisin)
+    Si nd < dist[voisin]:
+      dist[voisin] = nd
+      prev[voisin] = cur
+      heap.push(nd, voisin)
+
+Reconstruction: chemin ← remonter prev depuis endId jusqu'à startId (inverser)
+Sortie: { path: [id1, id2, ...], totalDistance: km }
+Complexité: O((V + E) log V) ≈ O(n log n) pour graphe K-NN</code></pre>
+
+      <h3>5.5 Heuristique Nearest-Neighbor (Greedy)</h3>
+      <p>Ordonnancement initial des bacs par approche gloutonne. Phase 1 de <code class="inline-code">optimizeMultiStop()</code>.</p>
+      <pre><code>Entrée: startPoint {lat, lng}, bacs[], criterium
+Fonction coût selon criterium:
+  'distance' : dist = haversine(cur, bac)
+  'temps'    : dist / 30 km/h × 60 (minutes)
+  'priorité' : dist × (1 - niveauRemplissage/100)
+
+Algorithme:
+  pool = copie(bacs), ordered = [], pos = startPoint
+  Tant que pool non vide:
+    Calculer coût(pos, bac) pour chaque bac ∈ pool
+    Sélectionner bac* avec coût minimum
+    ordered.append(bac*) ; pool.remove(bac*) ; pos = bac*
+  Retourner ordered
+
+Complexité: O(n²)</code></pre>
+
+      <h3>5.6 Amélioration 2-opt</h3>
+      <p>Optimisation locale post-greedy. Réduit typiquement la distance de 10 à 20% sur des instances réelles. Activé pour les critères distance et temps (pas priorité, car pondération non-linéaire).</p>
+      <pre><code>Entrée: route = [bac0, bac1, ..., bacN] (résultat nearest-neighbor)
+Condition: len(route) ≥ 4 et criterium ∈ {distance, temps}
+
+Boucle externe (tant qu'amélioration):
+  improved = false
+  Pour i de 0 à n-2:
+    Pour j de i+2 à n-2:
+      // Arêtes actuelles:  (i→i+1) + (j→j+1)
+      d_avant = haversine(route[i], route[i+1]) + haversine(route[j], route[j+1])
+      // Arêtes inversées:  (i→j) + (i+1→j+1)
+      d_après = haversine(route[i], route[j])   + haversine(route[i+1], route[j+1])
+
+      Si d_après < d_avant - ε:          // ε = 1e-10 (tolérance flottant)
+        Inverser segment route[i+1..j]   // swap in-place
+        improved = true
+
+Complexité: O(n² × itérations) — converge en 2-5 passes pour n < 200</code></pre>
+
+      <h3>5.7 Suppression des outliers géographiques</h3>
+      <p>Protection contre les données de test aberrantes (bacs créés avec coordonnées (0,0) ou hors zone). Appliquée avant tout calcul d'optimisation.</p>
+      <pre><code>Algorithme:
+1. Calculer centroïde C = (Σlat/n, Σlng/n)
+2. Calculer distance di = haversine(C, bac_i) pour chaque bac
+3. Trier les distances → trouver la médiane m
+4. Seuil adaptatif: t = clamp(m × 10, 30km, 150km)
+5. Garder bacs avec di ≤ t
+6. Garde-fou: si aucun bac gardé → prendre les 5 plus proches de C
+
+Cas couverts: bac(0,0) Gulf of Guinea, bac en Europe, saisie inversée lat/lng</code></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s6">
+      <div class="section-title">
+        <div class="section-num">6</div>
+        <h2 class="sec">Dispositifs IoT pour les bacs</h2>
+      </div>
+
+      <p>SmartCleanCity est conçu pour s'intégrer avec des capteurs IoT installés sur les bacs à ordures afin d'automatiser le monitoring du niveau de remplissage et de la géolocalisation.</p>
+
+      <h3>6.1 Architecture IoT recommandée</h3>
+      <div class="iot-flow">
+        <div class="iot-node"><span class="iot-icon">📡</span><span>Capteur<br>Ultrason</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">🔌</span><span>Micro-<br>contrôleur</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">📶</span><span>Module<br>4G / NB-IoT</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">☁️</span><span>API REST<br>SmartClean</span></div>
+        <div class="iot-arrow">→</div>
+        <div class="iot-node"><span class="iot-icon">🔴</span><span>Socket.IO<br>Alerte admin</span></div>
+      </div>
+
+      <h3>6.2 Composants matériels recommandés</h3>
+      <table>
+        <thead><tr><th>Composant</th><th>Modèle recommandé</th><th>Rôle</th><th>Communication</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Capteur de niveau</strong></td><td>HC-SR04 / JSN-SR04T (étanche)</td><td>Mesure ultrasonique de la hauteur des déchets → conversion en pourcentage de remplissage</td><td>GPIO / UART</td></tr>
+          <tr><td><strong>Capteur de poids</strong></td><td>HX711 + cellule de charge</td><td>Poids des déchets en kg pour estimer le volume</td><td>SPI</td></tr>
+          <tr><td><strong>GPS</strong></td><td>NEO-6M / SIM808</td><td>Position GPS du bac (latitude, longitude) envoyée lors de l'installation ou du déplacement</td><td>UART / I2C</td></tr>
+          <tr><td><strong>Microcontrôleur</strong></td><td>ESP32 / Arduino MKR NB 1500</td><td>Collecte des données capteurs, traitement, envoi HTTP</td><td>WiFi / Bluetooth</td></tr>
+          <tr><td><strong>Module réseau</strong></td><td>SIM800L (2G) / SIM7600 (4G)</td><td>Connexion cellulaire pour zones sans WiFi (périmètre urbain élargi)</td><td>AT Commands</td></tr>
+          <tr><td><strong>Batterie / Panneau solaire</strong></td><td>LiPo 3.7V + panneau 5W</td><td>Alimentation autonome pour bacs en extérieur sans accès électrique</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>6.3 Protocole de communication IoT → API</h3>
+      <pre><code>// Payload envoyé par le capteur IoT au serveur (HTTP PATCH)
+PATCH https://smartcleancity.api/api/bacs/{codeBac}/niveau
+Content-Type: application/json
+Authorization: Bearer {iot_token}
+
+{
+  "niveauRemplissage": 87,    // % calculé: (hauteurVide - hauteurMesurée) / hauteurVide × 100
+  "timestamp": "2026-05-05T14:30:00Z"
+}
+
+// Réponse serveur
+{
+  "success": true,
+  "data": {
+    "codeBac": "BAC-042",
+    "niveauRemplissage": 87,
+    "statut": "Plein",          // Auto-calculé: >= 80% = Plein
+    "alerteEmise": true         // Socket.IO bac-niveau-update émis
+  }
+}</code></pre>
+
+      <h3>6.4 Champ niveauRemplissage — logique de statut</h3>
+      <table>
+        <thead><tr><th>Niveau (%)</th><th>Statut auto-calculé</th><th>Couleur carte</th><th>Priorité collecte</th></tr></thead>
+        <tbody>
+          <tr><td>0 – 39%</td><td><span class="badge badge-green">Vide</span></td><td>Vert 🟢</td><td>Basse</td></tr>
+          <tr><td>40 – 79%</td><td><span class="badge badge-orange">Moyen</span></td><td>Orange 🟡</td><td>Normale</td></tr>
+          <tr><td>80 – 100%</td><td><span class="badge badge-red">Plein</span></td><td>Rouge 🔴</td><td>Haute (priorité Dijkstra)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <span><strong>Sécurité IoT :</strong> Dans la version actuelle, la mise à jour du niveau est accessible via l'API REST avec authentification JWT. Pour un déploiement production, il est recommandé de créer des tokens dédiés aux dispositifs IoT avec un rôle spécifique <code class="inline-code">IOT_DEVICE</code> et une limitation de débit par device.</span>
+      </div>
+
+      <h3>6.5 Fréquence de reporting recommandée</h3>
+      <table>
+        <thead><tr><th>Scénario</th><th>Fréquence</th><th>Justification</th></tr></thead>
+        <tbody>
+          <tr><td>Bac avec niveau &lt; 40%</td><td>Toutes les 6 heures</td><td>Peu urgent, économie batterie</td></tr>
+          <tr><td>Bac avec niveau 40–79%</td><td>Toutes les 2 heures</td><td>Surveillance standard</td></tr>
+          <tr><td>Bac avec niveau &gt; 79%</td><td>Toutes les 30 minutes</td><td>Alerte imminente, priorité haute</td></tr>
+          <tr><td>Changement brusque (+20%)</td><td>Immédiat</td><td>Déversement illégal probable</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s7">
+      <div class="section-title">
+        <div class="section-num">7</div>
+        <h2 class="sec">Communication temps réel (Socket.IO)</h2>
+      </div>
+
+      <table>
+        <thead><tr><th>Événement</th><th>Direction</th><th>Déclencheur</th><th>Payload</th><th>Abonnés</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code class="inline-code">vehicule-position</code></td>
+            <td>Serveur → Tous</td>
+            <td>POST /api/navigation/position</td>
+            <td><code class="inline-code">{vehiculeId, lat, lng, immatriculation, tourneeId}</code></td>
+            <td>Carte admin, Dashboard</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">bac-proximity-alert</code></td>
+            <td>Serveur → Tous</td>
+            <td>Distance ≤ 50m bac</td>
+            <td><code class="inline-code">{vehiculeId, tourneeId, bacId, codeBac, distanceMetres}</code></td>
+            <td>Navigation agent</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">bac-niveau-update</code></td>
+            <td>Serveur → Tous</td>
+            <td>PATCH /api/bacs/:id/niveau</td>
+            <td><code class="inline-code">{_id, codeBac, niveauRemplissage, statut}</code></td>
+            <td>Carte admin, Dashboard</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">nouvelle-plainte</code></td>
+            <td>Serveur → Tous</td>
+            <td>POST /api/plaintes</td>
+            <td><code class="inline-code">{_id, type, citoyenId, statut}</code></td>
+            <td>Admin layout (badge)</td>
+          </tr>
+          <tr>
+            <td><code class="inline-code">join-admin</code></td>
+            <td>Client → Serveur</td>
+            <td>Connexion admin</td>
+            <td><code class="inline-code">{adminId}</code></td>
+            <td>Room admin-{id}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s8">
+      <div class="section-title">
+        <div class="section-num">8</div>
+        <h2 class="sec">Bibliothèques et dépendances</h2>
+      </div>
+
+      <h3>8.1 Backend (Node.js)</h3>
+      <table>
+        <thead><tr><th>Bibliothèque</th><th>Version</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><strong>express</strong></td><td>^5.2.1</td><td>Framework API REST. Express 5 avec gestion async native.</td></tr>
+          <tr><td><strong>mongoose</strong></td><td>^9.2.1</td><td>ODM MongoDB. Schémas, validations, hooks pre-save, indexes.</td></tr>
+          <tr><td><strong>socket.io</strong></td><td>^4.8.3</td><td>WebSockets bidirectionnels. Événements GPS, bacs, plaintes.</td></tr>
+          <tr><td><strong>jsonwebtoken</strong></td><td>^9.0.3</td><td>Génération et vérification tokens JWT (expiration 1 jour).</td></tr>
+          <tr><td><strong>bcryptjs</strong></td><td>^3.0.3</td><td>Hachage bcrypt des mots de passe (salt rounds: 12).</td></tr>
+          <tr><td><strong>helmet</strong></td><td>^8.1.0</td><td>Sécurisation headers HTTP (HSTS, CSP, XSS protection).</td></tr>
+          <tr><td><strong>express-rate-limit</strong></td><td>^8.2.1</td><td>Limitation de débit : 20 tentatives auth / 15min, 200 req / 15min global.</td></tr>
+          <tr><td><strong>express-mongo-sanitize</strong></td><td>^2.2.0</td><td>Nettoyage des entrées pour prévenir les injections NoSQL.</td></tr>
+          <tr><td><strong>multer</strong></td><td>^2.1.1</td><td>Upload de fichiers (photos plaintes/incidents). Max 5 Mo, 3 fichiers.</td></tr>
+          <tr><td><strong>morgan</strong></td><td>^1.10.1</td><td>Logger HTTP. Console (dev) + fichier access.log (prod).</td></tr>
+          <tr><td><strong>cors</strong></td><td>^2.8.6</td><td>CORS configurable. Whitelist: localhost, 127.0.0.1, 192.168.*, 10.*.</td></tr>
+          <tr><td><strong>dotenv</strong></td><td>^17.3.1</td><td>Gestion des variables d'environnement (.env).</td></tr>
+          <tr><td><strong>swagger-ui-express</strong></td><td>^5.0.1</td><td>Documentation interactive API sur /api/docs.</td></tr>
+          <tr><td><strong>express-validator</strong></td><td>^7.3.1</td><td>Validation des champs de requêtes HTTP.</td></tr>
+          <tr><td><strong>nodemon</strong></td><td>^3.1.11</td><td>[Dev] Redémarrage automatique du serveur.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 Frontend (Angular 21)</h3>
+      <table>
+        <thead><tr><th>Bibliothèque</th><th>Version</th><th>Rôle</th></tr></thead>
+        <tbody>
+          <tr><td><strong>@angular/core</strong></td><td>^21.1.0</td><td>Framework frontend. Composants standalone, signals, new control flow (@if/@for).</td></tr>
+          <tr><td><strong>@angular/router</strong></td><td>^21.1.0</td><td>Routing SPA. Lazy-loading, guards, paramètres dynamiques.</td></tr>
+          <tr><td><strong>@angular/forms</strong></td><td>^21.1.0</td><td>Formulaires template-driven avec ngModel.</td></tr>
+          <tr><td><strong>@angular/ssr</strong></td><td>^21.1.4</td><td>Server-Side Rendering. RenderMode.Client pour routes protégées.</td></tr>
+          <tr><td><strong>rxjs</strong></td><td>~7.8.0</td><td>Programmation réactive. Observables, Subject, finalize, firstValueFrom.</td></tr>
+          <tr><td><strong>socket.io-client</strong></td><td>^4.8.3</td><td>Client WebSocket. Écoute positions véhicules et alertes bacs.</td></tr>
+          <tr><td><strong>chart.js</strong></td><td>^4.5.1</td><td>Graphiques dashboard : barres, courbes, doughnut. Statistiques et analytics.</td></tr>
+          <tr><td><strong>Google Maps JS API</strong></td><td>API externe</td><td>Carte interactive. Marqueurs SVG custom, polylines TSP/Dijkstra, InfoWindows, AdvancedMarkerElement.</td></tr>
+          <tr><td><strong>express</strong></td><td>^5.1.0</td><td>Serveur SSR Node.js pour le rendu serveur Angular.</td></tr>
+          <tr><td><strong>typescript</strong></td><td>~5.9.2</td><td>Typage statique, interfaces, enums.</td></tr>
+          <tr><td><strong>vitest</strong></td><td>^4.0.8</td><td>[Dev] Framework de tests unitaires.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s9">
+      <div class="section-title">
+        <div class="section-num">9</div>
+        <h2 class="sec">Sécurité et middlewares</h2>
+      </div>
+
+      <table>
+        <thead><tr><th>Couche</th><th>Mécanisme</th><th>Configuration</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Authentification</strong></td><td>JWT Bearer Token</td><td>Expiration 1 jour, secret en variable d'environnement, vérification sur toutes les routes protégées</td></tr>
+          <tr><td><strong>Autorisation</strong></td><td>RBAC (Role-Based Access Control)</td><td>3 rôles : ADMIN, AGENT, CITOYEN. roleMiddleware(roles[]) sur chaque route</td></tr>
+          <tr><td><strong>Hachage mot de passe</strong></td><td>bcryptjs</td><td>Salt rounds: 12. Hash comparé lors login, jamais stocké en clair</td></tr>
+          <tr><td><strong>Rate Limiting</strong></td><td>express-rate-limit</td><td>Auth: 20 req/15min. Global: 200 req/15min. Retour 429 si dépassé</td></tr>
+          <tr><td><strong>Headers sécurité</strong></td><td>helmet()</td><td>HSTS, X-Content-Type, X-Frame-Options, CSP, Referrer-Policy</td></tr>
+          <tr><td><strong>Injection NoSQL</strong></td><td>express-mongo-sanitize</td><td>Nettoyage req.body et req.params. req.query est read-only en Express 5</td></tr>
+          <tr><td><strong>CORS</strong></td><td>Whitelist dynamique</td><td>localhost:*, 127.0.0.1, 192.168.*, 10.*. Credentials activées</td></tr>
+          <tr><td><strong>Upload sécurisé</strong></td><td>multer + validation MIME</td><td>Formats: jpg/jpeg/png/webp. Limite: 5 Mo/fichier, 3 fichiers max</td></tr>
+          <tr><td><strong>Cache client</strong></td><td>Map + TTL 5 min</td><td>Clé: userId:url. Isolation multi-admins. Header X-Cache: HIT</td></tr>
+          <tr><td><strong>Guards Angular</strong></td><td>authGuard + roleGuard</td><td>Redirection /login avec returnUrl si non authentifié ou rôle invalide</td></tr>
+          <tr><td><strong>Intercepteur HTTP</strong></td><td>authInterceptor</td><td>Injection automatique Bearer token. Timeout 10s (20s navigation). Gestion 401</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="s10">
+      <div class="section-title">
+        <div class="section-num">10</div>
+        <h2 class="sec">Scénarios de test</h2>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>Les scénarios suivants couvrent les parcours critiques de l'application. Chaque test est identifié par un code unique et classé par priorité : <span class="badge badge-red">Critique</span> <span class="badge badge-orange">Haute</span> <span class="badge badge-blue">Normale</span> <span class="badge badge-gray">Basse</span></span>
+      </div>
+
+      <!-- AUTH -->
+      <h3>10.1 Authentification et autorisation</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-AUTH-001</span>
+          Connexion réussie agent
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Utilisateur AGENT actif en base. Serveur backend démarré sur port 5000.</span></div>
+          <div class="test-row"><span class="test-label">Actions</span><span class="test-val"></span></div>
+          <ol class="test-steps">
+            <li>Accéder à <code class="inline-code">http://localhost:4200/</code></li>
+            <li>Saisir email : <code class="inline-code">agent@test.com</code>, mot de passe : <code class="inline-code">password123</code></li>
+            <li>Cliquer sur "Se connecter"</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Redirection automatique vers <code class="inline-code">/agent/dashboard</code>. Token JWT stocké en localStorage. Bouton spinner visible pendant la requête.</span></div>
+        </div>
+        <div class="test-result">✅ Critère de succès : URL = /agent/dashboard, localStorage.token non null, localStorage.user.role = "AGENT"</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-AUTH-002</span>
+          Blocage accès non autorisé
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Utilisateur AGENT connecté.</span></div>
+          <div class="test-row"><span class="test-label">Actions</span><span class="test-val"></span></div>
+          <ol class="test-steps">
+            <li>Tenter d'accéder directement à <code class="inline-code">http://localhost:4200/admin/dashboard</code></li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Redirection immédiate vers <code class="inline-code">/login</code>. Aucun contenu admin affiché.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : URL redirigée, roleGuard actif, console sans erreur 403</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-AUTH-003</span>
+          Identifiants incorrects
+          <span class="test-priority"><span class="badge badge-orange">Haute</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Actions</span><span class="test-val"></span></div>
+          <ol class="test-steps">
+            <li>Saisir email valide avec mot de passe incorrect</li>
+            <li>Cliquer "Se connecter"</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Message d'erreur affiché sous le formulaire. Aucune redirection. Bouton revient à l'état normal.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : errorMsg visible, loading = false, URL inchangée</div>
+      </div>
+
+      <!-- BAC IoT -->
+      <h3>10.2 Gestion des bacs IoT</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-BAC-001</span>
+          Création bac avec coordonnées GPS
+          <span class="test-priority"><span class="badge badge-orange">Haute</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Admin connecté. Zone existante en base.</span></div>
+          <ol class="test-steps">
+            <li>Naviguer vers <code class="inline-code">/admin/bacs</code></li>
+            <li>Cliquer "Nouveau bac"</li>
+            <li>Renseigner : Code = BAC-TEST-01, Zone = Zone A, Capacité = 1000 L, Latitude = 4.0511, Longitude = 9.7679</li>
+            <li>Valider le formulaire</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Bac créé. Statut initial "Vide" (niveauRemplissage = 0). Marqueur vert visible sur la carte.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : bac visible dans la liste, marqueur vert sur carte, statut = "Vide"</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-BAC-002</span>
+          Mise à jour niveau IoT → alerte automatique
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Bac BAC-TEST-01 existant. Admin connecté sur la carte.</span></div>
+          <ol class="test-steps">
+            <li>Appeler <code class="inline-code">PATCH /api/bacs/{id}/niveau</code> avec <code class="inline-code">{"niveauRemplissage": 85}</code></li>
+            <li>Observer la carte admin en temps réel</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Statut passe à "Plein". Marqueur change de couleur (vert → rouge) en temps réel via Socket.IO. Événement <code class="inline-code">bac-niveau-update</code> reçu côté client.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : marqueur rouge sur carte sans rechargement page, statut API = "Plein"</div>
+      </div>
+
+      <!-- DIJKSTRA -->
+      <h3>10.3 Optimisation Dijkstra</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-DIJKSTRA-001</span>
+          Calcul itinéraire critère Distance
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">≥ 3 bacs avec coordonnées GPS valides (dans un rayon de 20 km). Admin sur carte.</span></div>
+          <ol class="test-steps">
+            <li>Naviguer vers <code class="inline-code">/admin/carte</code></li>
+            <li>Sélectionner critère "Distance minimale"</li>
+            <li>Cliquer "Calculer l'itinéraire"</li>
+            <li>Observer le résultat</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Polyline bleue tracée entre les bacs ordonnés. Distance totale &lt; 500 km. Panneau résultat : nbBacs, distanceKm, tempsMin. Numéros d'ordre sur les marqueurs.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : distance cohérente avec la géographie locale, ligne ne sort pas du périmètre des bacs</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-DIJKSTRA-002</span>
+          Filtrage outliers géographiques
+          <span class="test-priority"><span class="badge badge-orange">Haute</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Un bac avec coordonnées (0,0) ou hors du Cameroun présent en base. Niveau ≥ 0%.</span></div>
+          <ol class="test-steps">
+            <li>Lancer calcul Dijkstra depuis la carte admin</li>
+            <li>Vérifier la distance totale retournée</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Le bac aberrant est exclu automatiquement. Distance totale reste cohérente (< 200 km). Aucune route intercontinentale tracée.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : distanceKm < 200, aucun segment > 500 km dans la réponse API</div>
+      </div>
+
+      <!-- NAVIGATION GPS -->
+      <h3>10.4 Navigation GPS agent</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-NAV-001</span>
+          Démarrage navigation tournée en cours
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Agent connecté. Tournée assignée en statut "En cours". Bacs de la zone avec GPS valides.</span></div>
+          <ol class="test-steps">
+            <li>Naviguer vers <code class="inline-code">/agent/tournee</code></li>
+            <li>Cliquer "Démarrer la navigation" sur une tournée En cours</li>
+            <li>Accepter la permission GPS navigateur</li>
+            <li>Cliquer "Démarrer la navigation" dans la vue navigation</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Carte Google Maps affichée. Marqueur camion visible. Polyline rouge vers le premier bac. Carte "Prochain bac" affichée avec distance et temps estimé. Barre de progression initialisée.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : map visible, prochainBac non null, chemin tracé, progressionPct = 0%</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-NAV-002</span>
+          Alerte proximité bac (50 mètres)
+          <span class="test-priority"><span class="badge badge-red">Critique</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Navigation active. Bac cible défini.</span></div>
+          <ol class="test-steps">
+            <li>Envoyer POST <code class="inline-code">/api/navigation/position</code> avec coordonnées à ≤ 50m du bac cible</li>
+            <li>Observer la vue navigation agent</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Alerte proximité affichée (bordure rouge animée). Bouton "Valider la collecte" visible. Si mobile : vibration déclenchée. Événement Socket.IO <code class="inline-code">bac-proximity-alert</code> émis.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : proximiteAlert = true, bacProche non null, bouton validation affiché</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-NAV-003</span>
+          Mode simulation démo automatique
+          <span class="test-priority"><span class="badge badge-blue">Normale</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Navigation ouverte. Bacs disponibles en zone.</span></div>
+          <ol class="test-steps">
+            <li>Cliquer "🎬 Mode Simulation"</li>
+            <li>Cliquer "⚡ Démo automatique complète"</li>
+            <li>Observer les 5 étapes de la barre de progression</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Autopilote enchaîne : Position → Calcul Dijkstra → Déplacement animé → Alerte proximité → Validation. Chaque étape dure ~2s. Camion se déplace visible. Admin voit le camion bouger sur /admin/carte.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : 5 étapes complétées, simEtapeNum passe 1→5, tourneeFinie = true à la fin</div>
+      </div>
+
+      <!-- CITOYEN -->
+      <h3>10.5 Signalement citoyen</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-CIT-001</span>
+          Dépôt d'une plainte avec photo
+          <span class="test-priority"><span class="badge badge-orange">Haute</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Citoyen connecté. Dossier uploads/plaintes accessible.</span></div>
+          <ol class="test-steps">
+            <li>Naviguer vers <code class="inline-code">/citoyen/nouveau</code></li>
+            <li>Renseigner type, description (min 10 chars), zone, quartier</li>
+            <li>Joindre 1 photo JPG (taille &lt; 5 Mo)</li>
+            <li>Soumettre le formulaire</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Plainte créée en statut "En attente". Photo stockée dans uploads/plaintes/. Admin reçoit notification Socket.IO <code class="inline-code">nouvelle-plainte</code> en temps réel.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : plainte dans /citoyen/signalements, admin badge notif incrémenté</div>
+      </div>
+
+      <!-- PRIMES -->
+      <h3>10.6 Gestion des primes</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-PRIME-001</span>
+          Calcul automatique des primes mensuelles
+          <span class="test-priority"><span class="badge badge-blue">Normale</span></span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-label">Précondition</span><span class="test-val">Admin connecté. Équipe avec ≥ 2 tournées terminées ce mois. Config primes définie (ex: 5000 FCFA/tournée).</span></div>
+          <ol class="test-steps">
+            <li>Naviguer vers <code class="inline-code">/admin/primes</code></li>
+            <li>Sélectionner le mois et l'équipe</li>
+            <li>Consulter le calcul automatique</li>
+            <li>Créer un décaissement si montant correct</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Montant calculé = nbTournées × primeParTournée + nbCollectes × primeParCollecte. Décaissement créé en statut "En attente". Visible dans /agent/primes de l'équipe.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : montant cohérent, décaissement visible agent, statut = "En attente"</div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <h3>10.7 Performance et cache</h3>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-PERF-001</span>
+          Cache dashboard 5 minutes
+          <span class="test-priority"><span class="badge badge-gray">Basse</span></span>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>Appeler GET <code class="inline-code">/api/stats/dashboard</code> (premier appel)</li>
+            <li>Appeler GET <code class="inline-code">/api/stats/dashboard</code> à nouveau dans les 5 minutes</li>
+            <li>Vérifier les headers de réponse</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">Deuxième appel retourne header <code class="inline-code">X-Cache: HIT</code>. Temps réponse &lt; 5ms (vs ~200ms sans cache). Même données retournées.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : header X-Cache: HIT présent, temps réponse significativement réduit</div>
+      </div>
+
+      <div class="test-case">
+        <div class="test-header">
+          <span class="test-id">TC-PERF-002</span>
+          Rate limiting authentification
+          <span class="test-priority"><span class="badge badge-orange">Haute</span></span>
+        </div>
+        <div class="test-body">
+          <ol class="test-steps">
+            <li>Envoyer 20 requêtes POST <code class="inline-code">/api/auth/login</code> consécutives avec identifiants incorrects</li>
+            <li>Envoyer une 21ème requête</li>
+          </ol>
+          <div class="test-row"><span class="test-label">Résultat attendu</span><span class="test-val">21ème requête retourne HTTP 429 (Too Many Requests). Message d'erreur explicite. Blocage levé automatiquement après 15 minutes.</span></div>
+        </div>
+        <div class="test-result">✅ Critère : HTTP 429 à la 21ème tentative, Retry-After header présent</div>
+      </div>
+
+    </section>
+
+  </div><!-- /content -->
+
+  <!-- ── Pied de page ────────────────────────────────────────────────────── -->
+  <div class="doc-footer">
+    <span>SmartCleanCity · Rapport Technique v2.0 · 2026</span>
+    <span>NGANKOU WILFRIED LOÏC · ngankouwilfried8@gmail.com · +237 672 518 012</span>
+  </div>
+
+</div><!-- /document -->
+
+<script>
+// Amélioration du bouton: propose export Word (mhtml) en plus de PDF
+document.querySelector('.btn-download').addEventListener('click', function(e) {
+  e.preventDefault();
+  // Ouvre la boîte de dialogue d'impression → "Enregistrer en PDF"
+  window.print();
+});
+</script>
+</body>
+</html>

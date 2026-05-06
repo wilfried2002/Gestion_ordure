@@ -52,13 +52,23 @@ export class Incidents implements OnInit {
     if (this.form.tourneeId) payload.tourneeId = this.form.tourneeId;
 
     this.svc.signalerIncident(payload).subscribe({
-      next: () => {
-        this.successMsg  = 'Incident signalé avec succès.';
-        this.form        = { description: '', gravite: 'Faible', tourneeId: '' };
-        this.showForm    = false;
+      next: (r: any) => {
+        // Mise à jour optimiste : affiche l'incident immédiatement sans attendre loadAll()
+        const nouvelIncident = r.data ?? {
+          _id: Date.now().toString(),
+          description: payload.description,
+          gravite: payload.gravite,
+          statut: 'Ouvert',
+          createdAt: new Date().toISOString(),
+        };
+        this.incidents = [nouvelIncident, ...this.incidents];
+        this.successMsg    = 'Incident signalé avec succès.';
+        this.form          = { description: '', gravite: 'Faible', tourneeId: '' };
+        this.showForm      = false;
         this.actionLoading = false;
-        this.loadAll();
         setTimeout(() => this.successMsg = '', 4000);
+        // Rafraîchissement silencieux en arrière-plan pour récupérer les données peuplées
+        this.svc.getMesIncidents().subscribe({ next: rr => { this.incidents = rr.data ?? []; } });
       },
       error: err => {
         this.errorMsg    = err?.error?.message || 'Erreur lors du signalement.';

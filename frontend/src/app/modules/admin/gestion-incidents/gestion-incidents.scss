@@ -1,0 +1,78 @@
+.filters-bar {
+  display: flex; gap: 1rem; margin-bottom: 1.25rem; align-items: center;
+  .search-bar { margin-bottom: 0; }
+}
+.filter-select {
+  padding: .55rem .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: .9rem;
+  background: #fff; color: var(--text-dark);
+  &:focus { outline: none; border-color: var(--primary); }
+}
+.header-counters { display: flex; gap: .5rem; align-items: center; }
+.counter-chip {
+  padding: .3rem .75rem; border-radius: 999px; font-size: .8rem; font-weight: 600;
+  &.chip-warning { background: rgba(251,191,36,.15); color: #d97706; }
+  &.chip-info    { background: rgba(96,165,250,.15);  color: #2563eb; }
+}
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .75rem; padding: 3rem; color: var(--text-muted);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.action-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* Ligne urgente */
+tr.row-urgent td { background: rgba(239,68,68,.04); }
+
+/* Agent cell */
+.agent-cell { display: flex; align-items: center; gap: .5rem; }
+.avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(34,197,94,.15); color: var(--primary, #22c55e);
+  font-size: .65rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.agent-name  { display: block; font-size: .875rem; font-weight: 500; }
+.agent-email { display: block; font-size: .73rem; color: var(--text-muted); }
+
+.td-truncate { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-date     { white-space: nowrap; font-size: .82rem; color: var(--text-muted); }
+
+/* Résumé de l'incident dans la modale */
+.incident-summary {
+  background: var(--bg-light, #f9fafb);
+  border-radius: 8px; padding: .75rem 1rem;
+}
+.summary-row {
+  display: flex; gap: .75rem; align-items: flex-start;
+  padding: .35rem 0; border-bottom: 1px solid var(--border);
+  &:last-child { border-bottom: none; }
+}
+.summary-label { font-size: .78rem; font-weight: 600; color: var(--text-muted); min-width: 90px; flex-shrink: 0; }
+.summary-desc  { font-size: .875rem; line-height: 1.5; white-space: pre-wrap; }
+
+/* Radio chips statut */
+.statut-choices {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+}
+.statut-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .35rem .75rem; border-radius: 999px;
+  border: 1.5px solid var(--border);
+  font-size: .82rem; cursor: pointer; background: #fff;
+  color: var(--text-dark); user-select: none;
+  transition: border-color .15s, background .15s, color .15s;
+
+  input[type="radio"] { display: none; }
+
+  &.selected {
+    background: var(--primary); border-color: var(--primary); color: #fff;
+  }
+  &:hover:not(.selected) { border-color: var(--primary); color: var(--primary); }
+}

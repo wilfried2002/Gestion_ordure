@@ -1,0 +1,222 @@
+<div class="home-page">
+
+  <!-- ════════════════════════════════════════════════════════
+       PANNEAU GAUCHE  (50%)
+  ════════════════════════════════════════════════════════════ -->
+  <div class="panel-left">
+
+    <!-- Motifs décoratifs CSS -->
+    <div class="deco-grid"></div>
+    <div class="deco-circle deco-c1"></div>
+    <div class="deco-circle deco-c2"></div>
+    <div class="deco-ring deco-r1"></div>
+    <div class="deco-ring deco-r2"></div>
+    <div class="deco-dots"></div>
+
+    <div class="left-content">
+
+      <!-- Logo dans un cercle glassmorphisme -->
+      <div class="logo-wrapper">
+        <div class="logo-glow"></div>
+        <div class="logo-circle">
+          <img src="/logo/logo.png" alt="SmartCleanCity" class="logo-img"
+               (error)="$any($event.target).style.display='none'">
+          <!-- Fallback SVG si l'image n'est pas encore placée -->
+          <svg class="logo-fallback" viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="40" fill="url(#lgrad)"/>
+            <path d="M24 34h32M27 34v-4h26v4M24 34l3 26h26l3-26" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M33 40v14M40 40v14M47 40v14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 62 Q40 54 58 62" stroke="#86efac" stroke-width="1.5" fill="none"/>
+            <defs>
+              <linearGradient id="lgrad" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#16a34a"/>
+                <stop offset="100%" stop-color="#0ea5e9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <!-- Orbite animée -->
+        <div class="logo-orbit">
+          <span class="orbit-dot"></span>
+        </div>
+      </div>
+
+      <!-- Titre -->
+      <div class="brand-text">
+        <h1>Smart<span>Clean</span>City</h1>
+        <p class="brand-tagline">Optimized Waste Management</p>
+      </div>
+
+      <!-- Séparateur décoratif -->
+      <div class="sep-line">
+        <span></span><div class="sep-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+        </div><span></span>
+      </div>
+
+      <!-- Accordéon À propos -->
+      <div class="accordion">
+        <button class="accordion-trigger" (click)="aboutOpen = !aboutOpen" [class.open]="aboutOpen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          À propos de SmartCleanCity
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        <div class="accordion-body" [style.maxHeight]="aboutOpen ? '420px' : '0'">
+          <div class="accordion-inner">
+            <p>
+              <strong>SmartCleanCity</strong> est une solution numérique innovante conçue pour
+              moderniser la gestion des déchets urbains. Elle connecte agents, administrateurs
+              et citoyens dans un écosystème digital unifié — de la collecte au reporting.
+            </p>
+            <p>
+              Grâce à l'algorithme <strong>Dijkstra</strong> d'optimisation des trajets et à
+              la géolocalisation GPS temps réel, les équipes terrain réduisent leurs coûts
+              opérationnels tout en améliorant la propreté urbaine.
+            </p>
+
+            <div class="dev-card">
+              <div class="dev-avatar">NW</div>
+              <div class="dev-info">
+                <strong>NGANKOU WILFRIED LOÏC</strong>
+                <span>Concepteur &amp; Développeur Full Stack</span>
+                <div class="dev-contacts">
+                  <a href="mailto:ngankouwilfried8@gmail.com">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    ngankouwilfried8&#64;gmail.com
+                  </a>
+                  <a href="tel:+237672518012">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.61 3.38 2 2 0 013.6 1.18h3a2 2 0 012 1.72c.127.96.36 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.82a16 16 0 006.29 6.29l.94-.94a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                    +237 672 518 012
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="feature-pills">
+        <div class="feat-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          GPS Temps réel
+        </div>
+        <div class="feat-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Dijkstra
+        </div>
+        <div class="feat-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Tournées
+        </div>
+        <div class="feat-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Signalement
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <p class="copy">© 2026 SmartCleanCity — Tous droits réservés</p>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       PANNEAU DROIT  (50%)
+  ════════════════════════════════════════════════════════════ -->
+  <div class="panel-right">
+    <div class="auth-card">
+
+      <div class="auth-card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+          </svg>
+        </div>
+        <h2>Connexion</h2>
+        <p>Accédez à votre espace agent</p>
+      </div>
+
+      @if (errorMsg) {
+        <div class="auth-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {{ errorMsg }}
+        </div>
+      }
+
+      <form (ngSubmit)="onLogin()" class="auth-form">
+
+        <div class="form-field">
+          <label>Adresse email</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input type="email" [(ngModel)]="email" name="email" placeholder="votre@email.com" autocomplete="email" required>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Mot de passe</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            <input [type]="showPassword ? 'text' : 'password'"
+                   [(ngModel)]="password" name="password"
+                   placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="pass-toggle" (click)="showPassword = !showPassword">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                @if (showPassword) {
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                } @else {
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                }
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth" [disabled]="loading">
+          @if (loading) {
+            <span class="spinner"></span> Connexion en cours…
+          } @else {
+            Se connecter
+          }
+        </button>
+
+      </form>
+
+      <div class="auth-divider"><span>accès spécifique</span></div>
+
+      <a routerLink="/login" class="btn-admin-access">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+        </svg>
+        Espace Administrateur
+      </a>
+
+      <p class="auth-footer-text">
+        Nouveau sur la plateforme ?
+        <a routerLink="/register" class="auth-link">Créer un compte</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>

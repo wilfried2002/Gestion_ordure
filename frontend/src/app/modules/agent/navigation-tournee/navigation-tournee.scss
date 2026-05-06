@@ -1,0 +1,481 @@
+// ── Layout plein écran ────────────────────────────────────────────────────────
+// position:fixed + inset:0 → échappe au overflow-y:auto du content agent-layout
+// z-index:200 → au-dessus de la sidebar (z-index:100) et de la topbar (z-index:50)
+.nav-container {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  overflow: hidden;
+}
+
+// ── Section carte ─────────────────────────────────────────────────────────────
+.map-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden; // empêche tout débordement hors du flex-item
+}
+
+// Div dédié Google Maps — DOIT avoir width/height explicites
+// Google Maps calcule sa taille à l'init ; sans ces règles la carte est invisible
+.gmap-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  background: var(--bg, #f8fafc);
+  z-index: 10;
+  p { color: var(--text-muted, #64748b); font-size: .9rem; }
+}
+
+// Badge flottant sur la carte pendant la démo
+.demo-badge-map {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: rgba(124, 58, 237, .92);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .45rem 1rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  box-shadow: 0 4px 14px rgba(124,58,237,.45);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-dot {
+  width: 8px;
+  height: 8px;
+  background: #a78bfa;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 1s ease-in-out infinite;
+}
+
+// ── Panneau latéral ───────────────────────────────────────────────────────────
+.nav-panel {
+  width: 320px;
+  min-width: 280px;
+  overflow-y: auto;
+  background: var(--card-bg, #fff);
+  border-left: 1px solid var(--border, #e2e8f0);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 2;
+}
+
+// ── En-tête ───────────────────────────────────────────────────────────────────
+.nav-header {
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  padding-bottom: .75rem;
+}
+.nav-header-top {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.nav-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text, #1e293b);
+  flex: 1;
+  margin: 0;
+}
+.nav-subtitle {
+  font-size: .8rem;
+  color: var(--text-muted, #64748b);
+  margin: .25rem 0 0;
+}
+.back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--text-muted, #64748b);
+  background: var(--bg, #f8fafc);
+  text-decoration: none;
+  flex-shrink: 0;
+  &:hover { background: var(--border, #e2e8f0); }
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────────
+.gps-status {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  color: var(--text-muted, #64748b);
+  padding: .5rem .75rem;
+  background: var(--bg, #f8fafc);
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  &.gps-on {
+    color: #16a34a;
+    background: rgba(22,163,74,.08);
+    border-color: rgba(22,163,74,.25);
+  }
+}
+
+.sim-tag {
+  margin-left: auto;
+  background: #7c3aed;
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: .04em;
+}
+
+// ── Alerte proximité ──────────────────────────────────────────────────────────
+.proximity-alert {
+  background: rgba(239,68,68,.08);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .6rem;
+  text-align: center;
+  animation: pulse 1.1s ease-in-out infinite;
+}
+.alert-icon  { font-size: 2rem; }
+.alert-info  {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  strong  { font-size: .95rem; color: #ef4444; }
+  span    { font-size: .8rem;  color: var(--text-muted, #64748b); }
+  .alert-code   { font-weight: 700; color: var(--text, #1e293b); }
+}
+
+// ── Prochain bac ──────────────────────────────────────────────────────────────
+.next-bac-card {
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.next-bac-label    { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted, #64748b); }
+.next-bac-code     { display: flex; align-items: center; gap: .4rem; font-size: 1rem; font-weight: 700; color: var(--text, #1e293b); }
+.next-bac-niveau   { font-size: .85rem; color: var(--text-muted, #64748b); }
+.next-bac-distance { display: flex; gap: 1rem; font-size: .85rem; color: var(--text-muted, #64748b); margin-top: .2rem; }
+
+// ── Progression ───────────────────────────────────────────────────────────────
+.progression-card {
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+}
+.prog-header  { display: flex; justify-content: space-between; font-size: .82rem; color: var(--text-muted, #64748b); margin-bottom: .5rem; strong { color: var(--text, #1e293b); } }
+.prog-bar     { height: 8px; background: var(--border, #e2e8f0); border-radius: 999px; overflow: hidden; }
+.prog-fill    { height: 100%; background: var(--primary, #16a34a); border-radius: 999px; transition: width .4s ease; }
+.prog-pct     { display: block; text-align: right; font-size: .78rem; font-weight: 600; color: var(--primary, #16a34a); margin-top: .3rem; }
+
+// ── Tournée terminée ──────────────────────────────────────────────────────────
+.tournee-finie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .6rem;
+  padding: 1.25rem;
+  background: rgba(22,163,74,.08);
+  border: 1.5px solid rgba(22,163,74,.3);
+  border-radius: 12px;
+  text-align: center;
+  .finie-icon { font-size: 2.4rem; }
+  strong      { font-size: 1rem; font-weight: 700; color: #16a34a; }
+  p           { font-size: .82rem; color: var(--text-muted, #64748b); margin: 0; }
+}
+
+.btn-full { width: 100%; justify-content: center; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PANNEAU SIMULATION
+// ══════════════════════════════════════════════════════════════════════════════
+.sim-section {
+  border-top: 1px solid var(--border, #e2e8f0);
+  padding-top: .75rem;
+  margin-top: auto; // pousse en bas du panneau
+}
+
+// Bouton toggle simulation
+.sim-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem .85rem;
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 9px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  transition: all .15s;
+
+  &:hover { background: #f1f5f9; color: var(--text, #1e293b); }
+
+  &.sim-active {
+    background: rgba(124,58,237,.08);
+    border-color: rgba(124,58,237,.35);
+    color: #7c3aed;
+  }
+}
+
+// Panneau simulation ouvert
+.sim-panel {
+  margin-top: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.sim-desc {
+  font-size: .78rem;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Libellé étape en cours
+.sim-etape-badge {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  background: rgba(124,58,237,.1);
+  border: 1px solid rgba(124,58,237,.2);
+  border-radius: 7px;
+  padding: .4rem .7rem;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.sim-dot-anim {
+  width: 8px;
+  height: 8px;
+  background: #7c3aed;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 0.8s ease-in-out infinite;
+}
+
+// Barre d'étapes
+.sim-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.sim-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  flex: 1;
+  font-size: .65rem;
+  color: var(--text-muted, #9ca3af);
+  position: relative;
+
+  // Connecteur entre étapes
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 60%;
+    width: 80%;
+    height: 2px;
+    background: var(--border, #e2e8f0);
+    z-index: 0;
+  }
+
+  &.sim-step-done {
+    color: #16a34a;
+    &::after { background: #16a34a; }
+    .sim-step-dot { background: #16a34a; color: #fff; font-size: .6rem; }
+  }
+
+  &.sim-step-active {
+    color: #7c3aed;
+    .sim-step-dot {
+      background: #7c3aed;
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(124,58,237,.2);
+      animation: pulse-step .8s ease-in-out infinite;
+    }
+  }
+}
+
+.sim-step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--border, #e2e8f0);
+  color: var(--text-muted, #9ca3af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  font-weight: 700;
+  z-index: 1;
+  transition: all .2s;
+}
+
+// Boutons simulation individuels
+.sim-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.sim-btn {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .65rem .85rem;
+  background: #fff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+  width: 100%;
+
+  &:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124,58,237,.12);
+  }
+
+  &:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+}
+
+.sim-btn-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.sim-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  flex: 1;
+
+  strong { font-size: .82rem; color: var(--text, #1e293b); }
+  small  { font-size: .73rem; color: var(--text-muted, #64748b); }
+}
+
+// Bouton démo automatique
+.sim-btn-demo {
+  background: rgba(124,58,237,.07);
+  border-color: rgba(124,58,237,.3);
+
+  strong { color: #7c3aed; }
+
+  &:hover:not(:disabled) {
+    background: rgba(124,58,237,.12);
+  }
+}
+
+.sim-btn-stop {
+  background: rgba(239,68,68,.07);
+  border-color: rgba(239,68,68,.3);
+  animation: pulse-border 1.5s ease-in-out infinite;
+
+  strong { color: #ef4444 !important; }
+  small  { color: #f87171 !important; }
+}
+
+// Indicateur "en cours" sur le bouton démo
+.sim-running-dot {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink .7s ease-in-out infinite;
+}
+
+.sim-note {
+  font-size: .73rem;
+  color: var(--text-muted, #94a3b8);
+  background: rgba(59,130,246,.06);
+  border: 1px solid rgba(59,130,246,.15);
+  border-radius: 7px;
+  padding: .5rem .7rem;
+  margin: 0;
+  line-height: 1.5;
+  strong { color: #3b82f6; }
+}
+
+// ── Keyframes ─────────────────────────────────────────────────────────────────
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .72; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+@keyframes pulse-step {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+  50%       { box-shadow: 0 0 0 4px rgba(239,68,68,.15); }
+}
+
+@keyframes pulse-marker {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+// ── Responsive mobile ─────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .nav-container { flex-direction: column; }
+  .map-section   { height: 55vh; flex: none; }
+  .nav-panel {
+    width: 100%;
+    height: 45vh;
+    border-left: none;
+    border-top: 1px solid var(--border, #e2e8f0);
+    padding: .75rem 1rem;
+    overflow-y: auto;
+  }
+  .sim-section { margin-top: .5rem; }
+}

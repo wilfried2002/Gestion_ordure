@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { StatsService } from '../../../core/services/stats.service';
-import { AuthService }  from '../../../core/services/auth';
+import { StatsService }       from '../../../core/services/stats.service';
+import { AuthService }        from '../../../core/services/auth';
+import { PerformanceService } from '../../../core/services/performance.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,14 +29,22 @@ export class Dashboard implements OnInit {
   currentUser: any = null;
   today = new Date();
 
+  // ── Performances du mois ─────────────────────────────────────────────────
+  perfLoading    = false;
+  topEquipes:    any[]  = [];   // top 3 pour le widget dashboard
+  meilleureEquipe: any  = null;
+  montantTotalPrimes    = 0;
+
   constructor(
     private statsSvc: StatsService,
     private authSvc:  AuthService,
+    private perfSvc:  PerformanceService,
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authSvc.getCurrentUser();
     this.load();
+    this.loadPerformances();
   }
 
   load() {
@@ -44,6 +53,22 @@ export class Dashboard implements OnInit {
       finalize(() => this.loading = false)
     ).subscribe({
       next: r => { if (r?.data) this.stats = r.data; },
+      error: () => {}
+    });
+  }
+
+  loadPerformances() {
+    this.perfLoading = true;
+    this.perfSvc.getPerformances().pipe(
+      finalize(() => this.perfLoading = false)
+    ).subscribe({
+      next: r => {
+        const d = r?.data ?? {};
+        const perfs: any[] = d.performances ?? [];
+        this.topEquipes        = perfs.slice(0, 3);
+        this.meilleureEquipe   = perfs.find((p: any) => p.rang === 1 && p.score > 0) ?? null;
+        this.montantTotalPrimes = d.totaux?.montantTotal ?? 0;
+      },
       error: () => {}
     });
   }
@@ -72,6 +97,18 @@ export class Dashboard implements OnInit {
     if (s === 'En cours')   return 'badge badge-info';
     if (s === 'En attente') return 'badge badge-warning';
     return 'badge badge-neutral';
+  }
+
+  plainteIcon(type: string): string {
+    const icons: Record<string, string> = {
+      'Ordures non collectées':     '🗑️',
+      'Dépôt sauvage':              '⚠️',
+      'Bac plein ou débordant':     '📦',
+      'Bac cassé ou manquant':      '🔧',
+      'Mauvaise odeur persistante': '💨',
+      'Autre problème':             '❓',
+    };
+    return icons[type] ?? '📋';
   }
 
   formatDate(d: string) {

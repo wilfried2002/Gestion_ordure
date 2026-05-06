@@ -1,0 +1,324 @@
+<div class="page-wrapper">
+
+  <!-- ── En-tête ─────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Primes &amp; Performances</h1>
+      <p class="page-subtitle">Suivi des performances et des primes des équipes de collecte</p>
+    </div>
+    <button class="btn btn-outline btn-sm" (click)="openEditConfig()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Configurer les taux
+    </button>
+  </div>
+
+  <!-- ── Sélecteur mois / année ───────────────────────────────── -->
+  <div class="period-bar">
+    <div class="period-select">
+      <label>Mois</label>
+      <select [(ngModel)]="mois" (change)="load()">
+        @for (m of moisListe; track m.val) {
+          <option [value]="m.val">{{ m.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="period-select">
+      <label>Année</label>
+      <select [(ngModel)]="annee" (change)="load()">
+        @for (a of anneeListe; track a) {
+          <option [value]="a">{{ a }}</option>
+        }
+      </select>
+    </div>
+    <button class="btn btn-primary btn-sm" (click)="load()" [disabled]="loading">
+      @if (loading) { <span class="btn-spinner"></span> } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+      }
+      Actualiser
+    </button>
+  </div>
+
+  <!-- ── Badge "Meilleure équipe du mois" ─────────────────────── -->
+  @if (meilleureEquipe) {
+    <div class="champion-banner">
+      <div class="champion-trophy">🏆</div>
+      <div class="champion-body">
+        <span class="champion-label">Meilleure équipe — {{ moisLabel }} {{ annee }}</span>
+        <span class="champion-name">{{ meilleureEquipe.equipe.nom }}</span>
+        <span class="champion-sub">
+          {{ meilleureEquipe.nbTourneesTerminees }} tournées terminées ·
+          {{ meilleureEquipe.nbCollectes }} collectes ·
+          {{ meilleureEquipe.tauxCompletion }}% complétion ·
+          Prime : {{ formatMontant(meilleureEquipe.montantPrime) }}
+        </span>
+      </div>
+      <div class="champion-note">
+        <span class="note-big">{{ meilleureEquipe.note }}</span>
+        <span class="note-max">/5</span>
+      </div>
+    </div>
+  }
+
+  <!-- ── Totaux du mois ───────────────────────────────────────── -->
+  <div class="totaux-grid">
+    <div class="totaux-card">
+      <span class="totaux-icon">🚛</span>
+      <div>
+        <span class="totaux-num">{{ totaux.tourneesTerminees ?? 0 }}</span>
+        <span class="totaux-lbl">Tournées terminées</span>
+      </div>
+    </div>
+    <div class="totaux-card">
+      <span class="totaux-icon">✅</span>
+      <div>
+        <span class="totaux-num">{{ totaux.collectes ?? 0 }}</span>
+        <span class="totaux-lbl">Collectes effectuées</span>
+      </div>
+    </div>
+    <div class="totaux-card">
+      <span class="totaux-icon">📦</span>
+      <div>
+        <span class="totaux-num">{{ totaux.volumeTotal ?? 0 }} m³</span>
+        <span class="totaux-lbl">Volume collecté</span>
+      </div>
+    </div>
+    <div class="totaux-card totaux-prime">
+      <span class="totaux-icon">💰</span>
+      <div>
+        <span class="totaux-num">{{ formatMontant(totaux.montantTotal ?? 0) }}</span>
+        <span class="totaux-lbl">Total primes générées</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Classement des équipes ───────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Classement des équipes — {{ moisLabel }} {{ annee }}</h2>
+      <span class="period-badge">{{ performances.length }} équipe{{ performances.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    @if (loading) {
+      <div class="loading-state"><div class="spinner"></div><p>Calcul en cours…</p></div>
+    } @else if (performances.length === 0) {
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="44" height="44">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
+        </svg>
+        <p>Aucune équipe enregistrée pour cette période.</p>
+        <a routerLink="/admin/equipes" class="btn btn-primary btn-sm">Gérer les équipes</a>
+      </div>
+    } @else {
+      <div class="ranking-list">
+        @for (p of performances; track p.equipe._id) {
+          <div class="ranking-row" [class.ranking-row-gold]="p.rang === 1 && p.score > 0"
+                                   [class.ranking-row-silver]="p.rang === 2 && p.score > 0"
+                                   [class.ranking-row-bronze]="p.rang === 3 && p.score > 0">
+
+            <!-- Rang -->
+            <div class="rank-col">
+              @if (p.rang === 1 && p.score > 0) { <span class="rank-medal">🥇</span> }
+              @else if (p.rang === 2 && p.score > 0) { <span class="rank-medal">🥈</span> }
+              @else if (p.rang === 3 && p.score > 0) { <span class="rank-medal">🥉</span> }
+              @else { <span class="rank-num">#{{ p.rang }}</span> }
+            </div>
+
+            <!-- Équipe -->
+            <div class="equipe-col">
+              <span class="equipe-nom">{{ p.equipe.nom }}</span>
+              @if (p.badge) {
+                <span class="equipe-badge" [class]="badgeClass(p.badge)">
+                  {{ badgeIcon(p.badge) }} {{ p.badge }}
+                </span>
+              }
+              <div class="equipe-membres">
+                @for (m of p.equipe.membres; track m._id) {
+                  <span class="membre-chip">{{ m.name }}</span>
+                }
+                @if (p.equipe.membres.length === 0) {
+                  <span class="membre-chip membre-empty">Aucun membre</span>
+                }
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-col">
+              <div class="stat-item">
+                <span class="stat-val">{{ p.nbTourneesTerminees }}</span>
+                <span class="stat-lbl">tournées</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-val">{{ p.nbCollectes }}</span>
+                <span class="stat-lbl">collectes</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-val">{{ p.tauxCompletion }}%</span>
+                <span class="stat-lbl">complétion</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-val">{{ p.volumeTotal }} m³</span>
+                <span class="stat-lbl">volume</span>
+              </div>
+            </div>
+
+            <!-- Note /5 -->
+            <div class="note-col">
+              <div class="stars-row">
+                @for (s of stars(p.note); track $index) {
+                  <svg viewBox="0 0 24 24" width="14" height="14"
+                       [class]="'star star-' + s">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                }
+              </div>
+              <span [class]="'note-val ' + noteClass(p.note)">{{ p.note }}/5</span>
+            </div>
+
+            <!-- Prime + bouton Décaisser -->
+            <div class="prime-col">
+              <span class="prime-amount">{{ formatMontant(p.montantPrime) }}</span>
+              <span class="prime-lbl">prime générée</span>
+              @if (p.montantPrime > 0) {
+                @if (alreadyDecaissed(p.equipe._id)) {
+                  <span class="dec-done-badge">✅ Décaissement créé</span>
+                } @else {
+                  <button class="btn-decaisser" (click)="openDecModal(p)">
+                    💸 Décaisser
+                  </button>
+                }
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Historique des décaissements ────────────────────────── -->
+  <div class="card" style="margin-top:1.25rem">
+    <div class="card-header">
+      <h2 class="card-title">Historique des décaissements — {{ moisLabel }} {{ annee }}</h2>
+      @if (loadingDec) { <span class="spinner-xs"></span> }
+    </div>
+    @if (decaissements.length === 0) {
+      <div class="empty-state" style="padding:1.5rem">
+        <p>Aucun décaissement ce mois. Cliquez sur "💸 Décaisser" dans le classement ci-dessus.</p>
+      </div>
+    } @else {
+      <div class="dec-table">
+        <div class="dec-thead">
+          <span>Équipe</span><span>Mois</span><span>Montant</span>
+          <span>Statut</span><span>Date</span><span>Actions</span>
+        </div>
+        @for (d of decaissements; track d._id) {
+          <div class="dec-trow">
+            <span class="dec-equipe-name">{{ d.equipeId?.nom ?? '—' }}</span>
+            <span>{{ moisListe[d.mois - 1]?.label }} {{ d.annee }}</span>
+            <span class="dec-montant">{{ formatMontant(d.montant) }}</span>
+            <span>
+              <span class="dec-badge" [class]="decStatutClass(d.statut)">
+                {{ d.statut === 'Décaissé' ? '✅' : d.statut === 'Annulé' ? '❌' : '⏳' }}
+                {{ d.statut }}
+              </span>
+            </span>
+            <span class="dec-date">
+              @if (d.statut === 'Décaissé') {
+                {{ d.decaisseLe ? (d.decaisseLe | date:'dd/MM/yyyy') : '—' }}
+              } @else {
+                {{ d.createdAt | date:'dd/MM/yyyy' }}
+              }
+            </span>
+            <span class="dec-actions">
+              @if (d.statut === 'En attente') {
+                <button class="btn-action btn-pay" (click)="markDecaisse(d)" title="Marquer comme payé">✅ Payer</button>
+                <button class="btn-action btn-cancel" (click)="markAnnule(d)" title="Annuler">❌</button>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── Taux de primes actuels ───────────────────────────────── -->
+  <div class="config-info">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Taux actuels :
+    <strong>{{ formatMontant(config.primeParTournee) }}</strong> par tournée terminée,
+    <strong>{{ formatMontant(config.primeParCollecte) }}</strong> par collecte effectuée.
+    <button class="config-edit-link" (click)="openEditConfig()">Modifier</button>
+  </div>
+
+</div>
+
+
+<!-- ── Modal décaissement ───────────────────────────────────────── -->
+<app-modal title="Créer un décaissement" [visible]="showDecModal" (close)="showDecModal = false">
+  <div class="modal-body">
+    @if (selectedPerf) {
+      <div class="dec-summary">
+        <strong>Équipe :</strong> {{ selectedPerf.equipe.nom }}<br>
+        <strong>Période :</strong> {{ moisLabel }} {{ annee }}<br>
+        <strong>Performances :</strong> {{ selectedPerf.nbTourneesTerminees }} tournées ·
+        {{ selectedPerf.nbCollectes }} collectes · {{ selectedPerf.tauxCompletion }}% complétion
+      </div>
+    }
+    <div class="form-group">
+      <label>Montant à décaisser (FCFA)</label>
+      <input type="number" [(ngModel)]="decForm.montant" min="0" step="500">
+      <span class="field-hint">Prime calculée automatiquement — modifiable si besoin</span>
+    </div>
+    <div class="form-group">
+      <label>Note (optionnel)</label>
+      <textarea [(ngModel)]="decForm.note" rows="2" placeholder="Motif, référence de virement…"
+                style="width:100%;padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.875rem;resize:vertical"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="showDecModal = false">Annuler</button>
+    <button class="btn btn-primary" (click)="createDecaissement()" [disabled]="savingDec || !decForm.montant">
+      @if (savingDec) { <span class="btn-spinner"></span> Enregistrement… }
+      @else { 💸 Créer le décaissement }
+    </button>
+  </div>
+</app-modal>
+
+<!-- ── Modal configuration taux ────────────────────────────────── -->
+<app-modal title="Configurer les taux de primes" [visible]="editConfig" (close)="editConfig = false">
+  <div class="modal-body">
+    <p class="modal-desc">
+      Ces taux sont utilisés pour calculer les primes de chaque équipe.
+      Les modifications s'appliquent immédiatement au calcul du mois sélectionné.
+    </p>
+    <div class="form-group">
+      <label>Prime par tournée terminée (FCFA)</label>
+      <input type="number" [(ngModel)]="configForm.primeParTournee" min="0" step="500"
+             placeholder="5000">
+      <span class="field-hint">Attribuée à chaque tournée dont le statut est "Terminée"</span>
+    </div>
+    <div class="form-group">
+      <label>Prime par collecte effectuée (FCFA)</label>
+      <input type="number" [(ngModel)]="configForm.primeParCollecte" min="0" step="100"
+             placeholder="500">
+      <span class="field-hint">Attribuée pour chaque collecte avec statut "Collecté"</span>
+    </div>
+    <div class="config-preview">
+      <strong>Exemple :</strong> Équipe avec 3 tournées terminées et 10 collectes =
+      <strong>{{ formatMontant(configForm.primeParTournee * 3 + configForm.primeParCollecte * 10) }}</strong>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="editConfig = false">Annuler</button>
+    <button class="btn btn-primary" (click)="saveConfig()" [disabled]="savingConfig">
+      @if (savingConfig) { <span class="btn-spinner"></span> Enregistrement… }
+      @else { Enregistrer }
+    </button>
+  </div>
+</app-modal>

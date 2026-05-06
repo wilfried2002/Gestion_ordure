@@ -1,0 +1,97 @@
+.action-btns { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .75rem; padding: 3rem; color: var(--text-muted);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.code-bac {
+  font-family: monospace; font-size: .85rem;
+  color: var(--primary, #22c55e);
+}
+
+.gps-cell {
+  font-family: monospace; font-size: .75rem;
+  color: var(--text-muted, #6b7280);
+  display: flex; flex-direction: column; gap: 1px;
+}
+
+/* ── Niveau de remplissage ────────────────────────────────── */
+.niveau-cell {
+  display: flex; align-items: center; gap: .5rem;
+}
+.niveau-bar {
+  width: 70px; height: 8px; border-radius: 4px;
+  background: var(--border, #2a3d2f); overflow: hidden;
+  flex-shrink: 0;
+}
+.niveau-fill {
+  height: 100%; border-radius: 4px;
+  transition: width .3s, background .3s;
+}
+.niveau-pct {
+  font-size: .75rem; font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  min-width: 32px;
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.form-row { display: grid; gap: 1rem; }
+.cols-2   { grid-template-columns: 1fr 1fr; }
+.form-group {
+  display: flex; flex-direction: column; gap: .35rem;
+  label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  input, select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: .55rem .8rem; font-size: .875rem; font-family: inherit;
+    background: #fff; color: #1f2937;
+    &:focus { outline: none; border-color: var(--primary,#22c55e); }
+  }
+}
+.form-hint {
+  display: flex; align-items: flex-start; gap: .4rem;
+  font-size: .77rem; color: var(--text-muted); margin-top: .5rem;
+  padding: .5rem .7rem; border-radius: 7px;
+  background: rgba(34,197,94,.06); border-left: 3px solid var(--primary,#22c55e);
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
+/* ── Range input ──────────────────────────────────────────── */
+.range-input {
+  width: 100%; accent-color: var(--primary, #22c55e);
+  cursor: pointer; height: 6px; margin: .5rem 0;
+}
+.range-value {
+  font-size: 1.4rem; font-weight: 700; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+.niveau-label {
+  font-size: .72rem; font-weight: 600; padding: .15rem .5rem;
+  border-radius: 999px;
+}
+.label-plein { background: rgba(239,68,68,.15); color: #b91c1c; }
+.label-moyen { background: rgba(245,158,11,.15); color: #92400e; }
+.label-vide  { background: rgba(34,197,94,.15);  color: #166534; }
+
+.modal-sm   { max-width: 380px; }
+.modal-wide { max-width: 680px; }
+
+// ── Mini-carte GPS picker dans le modal ───────────────────────
+.mini-map-picker {
+  height: 260px; width: 100%;
+  border-radius: 8px; overflow: hidden;
+  border: 1.5px solid var(--border, #2a3d2f);
+  cursor: crosshair;
+}
+
+.label-hint {
+  font-size: .72rem; font-weight: 400;
+  color: var(--text-muted, #6b7280);
+  font-style: italic; margin-left: .3rem;
+}

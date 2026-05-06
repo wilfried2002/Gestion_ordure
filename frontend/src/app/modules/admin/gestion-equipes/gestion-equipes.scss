@@ -183,3 +183,19 @@
   font-size: .75rem;
   color: var(--text-muted, #6b7280);
 }
+
+/* ── Badges poste ─────────────────────────────── */
+.badge-chauffeur {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .2rem .55rem; border-radius: 999px;
+  background: rgba(99,102,241,.13); color: #818cf8;
+  font-size: .7rem; font-weight: 600; white-space: nowrap;
+  svg { flex-shrink: 0; }
+}
+.badge-collecteur {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .2rem .55rem; border-radius: 999px;
+  background: rgba(251,191,36,.13); color: #d97706;
+  font-size: .7rem; font-weight: 600; white-space: nowrap;
+  svg { flex-shrink: 0; }
+}

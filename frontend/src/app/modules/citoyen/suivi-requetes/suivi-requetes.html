@@ -167,14 +167,9 @@
 </div>
 
 <!-- Modal détail -->
-@if (selectedPlainte) {
-  <div class="modal-backdrop" (click)="closeDetail()"></div>
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h2>Détail du signalement</h2>
-      <button class="modal-close" (click)="closeDetail()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal title="Détail du signalement" size="lg"
+           [visible]="!!selectedPlainte" (close)="closeDetail()">
+  <div class="modal-body">
 
       <!-- Status timeline -->
       <div class="detail-timeline">
@@ -239,8 +234,7 @@
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="closeDetail()">Fermer</button>
-    </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="closeDetail()">Fermer</button>
   </div>
-}
+</app-modal>

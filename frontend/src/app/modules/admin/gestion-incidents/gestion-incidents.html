@@ -1,0 +1,143 @@
+<div class="page-wrapper">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestion des incidents</h1>
+      <p class="page-subtitle">Incidents signalés par les agents de collecte</p>
+    </div>
+    <div class="header-counters">
+      @if (nbOuverts > 0) {
+        <span class="counter-chip chip-warning">{{ nbOuverts }} ouverts</span>
+      }
+      @if (nbEnCours > 0) {
+        <span class="counter-chip chip-info">{{ nbEnCours }} en cours</span>
+      }
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-bar">
+    <div class="search-bar" style="flex:1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+      </svg>
+      <input type="text" [(ngModel)]="search" (ngModelChange)="applyFilter()" placeholder="Rechercher agent, description…">
+    </div>
+    <select [(ngModel)]="filterGravite" (ngModelChange)="applyFilter()" class="filter-select">
+      <option value="">Toutes les gravités</option>
+      @for (g of gravites; track g) { <option [value]="g">{{ g }}</option> }
+    </select>
+    <select [(ngModel)]="filterStatut" (ngModelChange)="applyFilter()" class="filter-select">
+      <option value="">Tous les statuts</option>
+      @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
+  } @else if (filtered.length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>Aucun incident trouvé.</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Description</th>
+            <th>Tournée</th>
+            <th>Gravité</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of filtered; track i._id) {
+            <tr [class.row-urgent]="i.gravite === 'Élevée' && i.statut !== 'Résolu'">
+              <td>
+                <div class="agent-cell">
+                  <div class="avatar-sm">{{ (i.agentId?.name ?? 'A')[0].toUpperCase() }}</div>
+                  <div>
+                    <span class="agent-name">{{ i.agentId?.name ?? 'Agent inconnu' }}</span>
+                    <span class="agent-email">{{ i.agentId?.email ?? '' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="td-truncate" [title]="i.description">{{ i.description }}</td>
+              <td class="td-date">
+                @if (i.tourneeId?.date) { {{ i.tourneeId.date | date:'dd MMM y' }} }
+                @else { — }
+              </td>
+              <td><span [class]="graviteClass(i.gravite)">{{ i.gravite }}</span></td>
+              <td class="td-date">{{ formatDate(i.createdAt) }}</td>
+              <td><span [class]="statutClass(i.statut)">{{ i.statut }}</span></td>
+              <td>
+                <div class="action-btns">
+                  @if (i.statut !== 'Résolu') {
+                    <button class="btn btn-primary btn-sm" (click)="openPrendreEnCharge(i)">
+                      {{ i.statut === 'Ouvert' ? 'Prendre en charge' : 'Mettre à jour' }}
+                    </button>
+                  } @else {
+                    <span class="badge badge-success">Résolu</span>
+                  }
+                  <button class="btn btn-danger btn-sm" (click)="supprimer(i)">Supprimer</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal prise en charge -->
+<app-modal title="Traiter l'incident" [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
+
+    <!-- Résumé de l'incident -->
+    <div class="incident-summary">
+      <div class="summary-row">
+        <span class="summary-label">Agent</span>
+        <span>{{ incident?.agentId?.name ?? 'Inconnu' }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Gravité</span>
+        <span [class]="graviteClass(incident?.gravite)">{{ incident?.gravite }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Date</span>
+        <span>{{ formatDate(incident?.createdAt) }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Description</span>
+        <span class="summary-desc">{{ incident?.description }}</span>
+      </div>
+    </div>
+
+    <!-- Nouveau statut -->
+    <div class="form-group" style="margin-top:1rem">
+      <label>Changer le statut *</label>
+      <div class="statut-choices">
+        @for (s of statuts; track s) {
+          <label class="statut-chip" [class.selected]="nouveauStatut === s">
+            <input type="radio" [value]="s" [(ngModel)]="nouveauStatut" name="statut">
+            {{ s }}
+          </label>
+        }
+      </div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+    <button class="btn btn-primary" (click)="changerStatut()" [disabled]="saving">
+      @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Confirmer }
+    </button>
+  </div>
+</app-modal>

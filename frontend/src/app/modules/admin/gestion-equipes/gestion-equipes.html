@@ -71,7 +71,7 @@
                   <div class="membres-preview">
                     <div class="avatars-stack">
                       @for (m of e.membres.slice(0, 3); track m._id) {
-                        <div class="mini-avatar" [title]="m.name ?? m.email">
+                        <div class="mini-avatar" [title]="(m.name ?? m.email) + (m.poste ? ' · ' + m.poste : '')">
                           {{ initials(m.name ?? m.email) }}
                         </div>
                       }
@@ -132,56 +132,45 @@
 </div>
 
 <!-- ── Modal création / édition équipe ──────────────────────── -->
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()"></div>
-  <div class="modal">
-    <div class="modal-header">
-      <h2>{{ isEdit ? "Modifier l'équipe" : 'Nouvelle équipe' }}</h2>
-      <button class="modal-close" (click)="closeModal()">✕</button>
+<app-modal [title]="isEdit ? 'Modifier l\'équipe' : 'Nouvelle équipe'"
+           [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
+    <div class="form-group">
+      <label>Nom de l'équipe *</label>
+      <input type="text" [(ngModel)]="form.nom" placeholder="Ex : Équipe Alpha">
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Nom de l'équipe *</label>
-        <input type="text" [(ngModel)]="form.nom" placeholder="Ex : Équipe Alpha">
-      </div>
 
-      <div class="form-group">
-        <label>Véhicule assigné (optionnel)</label>
-        <select [(ngModel)]="form.vehiculeId">
-          <option value="">— Aucun véhicule —</option>
-          @for (v of vehicules; track v._id) {
-            <option [value]="v._id">{{ v.immatriculation }} – {{ v.type ?? v.statut }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="form-hint">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        Les agents se gèrent via le bouton <strong>Membres</strong> dans le tableau.
-      </div>
+    <div class="form-group">
+      <label>Véhicule assigné (optionnel)</label>
+      <select [(ngModel)]="form.vehiculeId">
+        <option value="">— Aucun véhicule —</option>
+        @for (v of vehicules; track v._id) {
+          <option [value]="v._id">{{ v.immatriculation }} – {{ v.type ?? v.statut }}</option>
+        }
+      </select>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
-      <button class="btn btn-primary" (click)="save()" [disabled]="saving">
-        @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
-      </button>
+
+    <div class="form-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Les agents se gèrent via le bouton <strong>Membres</strong> dans le tableau.
     </div>
   </div>
-}
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+    <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+      @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
+    </button>
+  </div>
+</app-modal>
 
 <!-- ── Modal gestion des membres ────────────────────────────── -->
-@if (showMembresModal && equipeSelectionnee) {
-  <div class="modal-backdrop" (click)="closeMembresModal()"></div>
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h2>Agents de l'équipe — {{ equipeSelectionnee.nom }}</h2>
-      <button class="modal-close" (click)="closeMembresModal()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal [title]="'Agents de l\'équipe — ' + (equipeSelectionnee?.nom || '')"
+           size="lg" [visible]="showMembresModal" (close)="closeMembresModal()">
+  <div class="modal-body">
 
       <!-- Ajout d'un agent -->
       <div class="add-membre-row">
@@ -227,7 +216,28 @@
                 <span class="membre-name">{{ m.name ?? m.nom }}</span>
                 <span class="membre-email">{{ m.email }}</span>
               </div>
-              <span class="badge badge-info">AGENT</span>
+              @if (m.poste === 'CHAUFFEUR') {
+                <span class="badge badge-chauffeur">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                  Chauffeur
+                </span>
+              } @else if (m.poste === 'COLLECTEUR') {
+                <span class="badge badge-collecteur">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                  </svg>
+                  Collecteur
+                </span>
+              } @else {
+                <span class="badge badge-info">Agent</span>
+              }
               <button class="btn btn-danger btn-sm" (click)="removeMembre(m._id, m.name ?? m.email)" [disabled]="membreLoading">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -240,8 +250,7 @@
       }
 
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="closeMembresModal()">Fermer</button>
-    </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="closeMembresModal()">Fermer</button>
   </div>
-}
+</app-modal>

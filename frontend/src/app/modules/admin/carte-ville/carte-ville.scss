@@ -1,0 +1,319 @@
+// ── Layout ─────────────────────────────────────────────────────────────────
+.carte-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px); // soustrait la topbar
+  gap: 0;
+  background: var(--bg, #0f1a12);
+}
+
+// ── Barre de contrôle ──────────────────────────────────────────────────────
+.carte-controls {
+  background: var(--surface, #1a2e22);
+  border-bottom: 1px solid var(--border, #2a3d2f);
+  padding: .6rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  flex-shrink: 0;
+}
+
+// Stat pills
+.stat-pills { display: flex; gap: .4rem; align-items: center; }
+.pill {
+  padding: .15rem .55rem; border-radius: 999px;
+  font-size: .7rem; font-weight: 700; white-space: nowrap;
+}
+.pill-total  { background: rgba(100,116,139,.2); color: #94a3b8; }
+.pill-plein  { background: rgba(239, 68, 68,.15); color: #f87171; }
+.pill-moyen  { background: rgba(245,158, 11,.15); color: #fbbf24; }
+.pill-vide   { background: rgba(34,197, 94,.15);  color: #4ade80; }
+
+.controls-row {
+  display: flex; gap: .4rem; align-items: center; flex-wrap: wrap;
+  select {
+    padding: .3rem .55rem; border-radius: 6px;
+    border: 1px solid var(--border, #2a3d2f);
+    background: #fff; color: #1f2937;
+    font-size: .8rem;
+    &:focus { outline: none; border-color: var(--primary, #22c55e); }
+  }
+}
+
+.reset-filters-btn {
+  padding: .25rem .6rem; border-radius: 6px;
+  border: 1px solid rgba(239,68,68,.4);
+  background: rgba(239,68,68,.08); color: #f87171;
+  font-size: .75rem; cursor: pointer; transition: all .15s;
+  &:hover { background: rgba(239,68,68,.18); border-color: #f87171; }
+}
+
+.layer-btn {
+  padding: .25rem .6rem; border-radius: 6px;
+  border: 1px solid var(--border, #2a3d2f);
+  background: var(--bg, #0f1a12); color: var(--text-muted, #6b7280);
+  font-size: .75rem; cursor: pointer; transition: all .15s;
+  &.active {
+    border-color: var(--primary, #22c55e);
+    color: var(--primary, #22c55e);
+    background: rgba(34,197,94,.08);
+  }
+  &:hover { border-color: var(--primary, #22c55e); }
+}
+
+// Avertissement véhicules sans GPS
+.no-gps-warning {
+  width: 100%; padding: .3rem .7rem; border-radius: 6px;
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+  color: #fca5a5; font-size: .74rem; line-height: 1.4;
+  strong { color: #f87171; }
+}
+
+// TSP row
+.tsp-row {
+  display: flex; align-items: center; gap: .4rem;
+  label { font-size: .78rem; color: var(--text-muted, #6b7280); }
+  input[type=number] {
+    padding: .25rem .4rem; border-radius: 6px;
+    border: 1px solid var(--border, #2a3d2f);
+    background: #fff; color: #1f2937; font-size: .8rem;
+    &:focus { outline: none; border-color: var(--primary,#22c55e); }
+  }
+}
+.btn-optimize {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+  padding: .3rem .75rem; border-radius: 6px;
+  min-width: 170px; min-height: 30px; // taille fixe → pas de changement au clic
+  background: var(--primary, #22c55e); color: #fff;
+  border: none; font-size: .8rem; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+  &:hover:not(:disabled) { background: #16a34a; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+.spinner-sm {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// TSP result
+.tsp-result {
+  display: flex; align-items: center; gap: .4rem;
+  background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25);
+  border-radius: 6px; padding: .3rem .75rem;
+  font-size: .8rem; color: #4ade80;
+  svg { flex-shrink: 0; }
+}
+.clear-btn {
+  margin-left: .4rem; background: transparent; border: none;
+  color: #6b7280; cursor: pointer; font-size: .75rem;
+  &:hover { color: #ef4444; }
+}
+
+// ── Simulation véhicule ────────────────────────────────────────────────────
+.sim-vehicule-panel { margin-bottom: .25rem; }
+
+.btn-sim-vehicule {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  min-height: 38px; // hauteur fixe → pas de redimensionnement au clic
+  padding: .5rem .85rem;
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.3);
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: #b45309;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s; // exclut 'all' → pas de resize animé
+
+  .btn-sim-label { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  &:hover { background: rgba(245,158,11,.15); }
+
+  &.sim-vehicule-stop {
+    background: rgba(239,68,68,.08);
+    border-color: rgba(239,68,68,.3);
+    color: #ef4444;
+    animation: pulse-border-v .9s ease-in-out infinite;
+  }
+}
+
+.sim-v-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+  animation: blink-v .7s ease-in-out infinite;
+}
+
+@keyframes blink-v  { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+@keyframes pulse-border-v { 0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,.3); } 50% { box-shadow:0 0 0 3px rgba(239,68,68,.15); } }
+
+// ── Panneau Dijkstra ───────────────────────────────────────────────────────
+.dijkstra-panel {
+  background: rgba(29,78,216,.05);
+  border: 1px solid rgba(29,78,216,.2);
+  border-radius: 8px;
+  padding: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.dijkstra-header {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.dijkstra-form {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+
+  label { font-size: .75rem; color: var(--text-muted, #64748b); }
+}
+
+.dijkstra-select {
+  font-size: .8rem;
+  padding: .3rem .5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: #fff;
+  color: var(--text, #1e293b);
+}
+
+.btn-dijkstra {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .45rem .85rem;
+  min-width: 185px; min-height: 34px; // taille fixe → pas de changement au clic
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover:not(:disabled) { background: #1e40af; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+.dijkstra-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(29,78,216,.08);
+  border-radius: 6px;
+  padding: .35rem .6rem;
+  font-size: .78rem;
+}
+
+.dij-stat {
+  color: #1d4ed8;
+  strong { font-weight: 700; }
+}
+
+.dij-empty {
+  color: var(--text-muted, #64748b);
+  font-size: .78rem;
+}
+
+// ── Carte ──────────────────────────────────────────────────────────────────
+.map-area {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.gmap-container {
+  width: 100%; height: 100%;
+  background: #e8e0d8;
+}
+.map-loading, .map-error {
+  position: absolute; inset: 0; z-index: 500;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(15,26,18,.8);
+  color: var(--text-muted, #6b7280);
+  gap: .75rem;
+}
+.spinner {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.15); border-top-color: var(--primary,#22c55e);
+  animation: spin .8s linear infinite;
+}
+.map-error { color: #f87171; font-size: .9rem; }
+
+// ── Légende ────────────────────────────────────────────────────────────────
+.legend {
+  display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
+  padding: .4rem 1rem;
+  background: var(--surface, #1a2e22);
+  border-top: 1px solid var(--border, #2a3d2f);
+  font-size: .72rem; color: var(--text-muted, #6b7280);
+  flex-shrink: 0;
+}
+.legend-title { font-weight: 600; color: var(--text-muted,#9ca3af); margin-right: .25rem; }
+.legend-dot {
+  width: 14px; height: 14px; border-radius: 50%; display: inline-block;
+}
+.dot-plein  { background: #ef4444; }
+.dot-moyen  { background: #f59e0b; }
+.dot-vide   { background: #22c55e; }
+.dot-camion { background: transparent; font-size: .9rem; width: auto; }
+
+// Mini pin dans la légende (reproduit la forme pointe vers le bas)
+.legend-pin-wrap {
+  display: inline-flex; flex-direction: column; align-items: center;
+  vertical-align: middle; margin: 0 2px;
+}
+.legend-pin-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7);
+}
+.legend-pin-arrow {
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  margin-top: -2px;
+}
+
+.legend-vehicule {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: #f97316;
+  svg { flex-shrink: 0; }
+}
+.legend-line {
+  display: inline-block; width: 28px; height: 3px;
+  background: #ef4444; border-radius: 2px;
+  border-bottom: 2px dashed #ef4444;
+}
+
+// ── Style InfoWindow Google Maps ────────────────────────────────────────────
+// Les InfoWindow sont injectées dans le DOM par Google — ::ng-deep requis
+::ng-deep .gm-style .gm-style-iw-c {
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  padding: 0 !important;
+}
+::ng-deep .gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+  padding: 10px 14px;
+}
+::ng-deep .gm-style .gm-style-iw-tc::after {
+  background: #fff;
+}

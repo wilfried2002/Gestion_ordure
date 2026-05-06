@@ -48,6 +48,12 @@
             @if (v.marque) { <span>{{ v.marque }}</span> }
             @if (v.annee) { <span>{{ v.annee }}</span> }
             @if (v.capacite) { <span>{{ v.capacite }} m³</span> }
+            @if (v.localisationGPS?.lat) {
+              <span class="gps-tag">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                GPS
+              </span>
+            }
           </div>
           <div class="vehicule-actions">
             <button class="btn btn-outline btn-sm" (click)="openEdit(v)">Modifier</button>
@@ -59,14 +65,10 @@
   }
 </div>
 
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()"></div>
-  <div class="modal">
-    <div class="modal-header">
-      <h2>{{ isEdit ? 'Modifier le véhicule' : 'Ajouter un véhicule' }}</h2>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal [title]="isEdit ? 'Modifier le véhicule' : 'Ajouter un véhicule'"
+           size="wide" [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
+
       <div class="form-row">
         <div class="form-group">
           <label>Immatriculation *</label>
@@ -79,6 +81,7 @@
           </select>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Marque</label>
@@ -89,6 +92,7 @@
           <input type="number" [(ngModel)]="form.annee" placeholder="2020">
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Capacité (m³)</label>
@@ -101,6 +105,38 @@
           </select>
         </div>
       </div>
+
+      <!-- Mini-carte GPS pour positionner le véhicule -->
+      <div class="form-group form-group-full">
+        <label>
+          Position GPS
+          <span class="label-hint">— Cliquez sur la carte pour placer le véhicule</span>
+        </label>
+        <div #miniMapVehicule class="mini-map-picker"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Latitude</label>
+          <input type="number" [(ngModel)]="form.localisationGPS.lat" step="0.000001"
+                 placeholder="Cliquez sur la carte ↑">
+        </div>
+        <div class="form-group">
+          <label>Longitude</label>
+          <input type="number" [(ngModel)]="form.localisationGPS.lng" step="0.000001"
+                 placeholder="Cliquez sur la carte ↑">
+        </div>
+      </div>
+
+      <div class="form-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        La position GPS est utilisée sur la carte uniquement lorsque le véhicule est en tournée.
+      </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
@@ -108,5 +144,4 @@
         @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
       </button>
     </div>
-  </div>
-}
+</app-modal>

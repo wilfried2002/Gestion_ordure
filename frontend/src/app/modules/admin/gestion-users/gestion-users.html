@@ -56,7 +56,12 @@
               <td>{{ u.email }}</td>
               <td>{{ u.telephone || '—' }}</td>
               <td>{{ u.ville || '—' }}</td>
-              <td><span [class]="roleClass(u.role)">{{ u.role }}</span></td>
+              <td>
+                <span [class]="roleClass(u.role)">{{ u.role }}</span>
+                @if (u.poste) {
+                  <span class="poste-badge">{{ u.poste }}</span>
+                }
+              </td>
               <td>
                 @if (u.role === 'AGENT') {
                   @let equipe = getEquipeAgent(u._id);
@@ -92,14 +97,9 @@
 </div>
 
 <!-- Modal création / édition -->
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()"></div>
-  <div class="modal">
-    <div class="modal-header">
-      <h2>{{ isEdit ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h2>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
+<app-modal [title]="isEdit ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"
+           [visible]="showModal" (close)="closeModal()">
+  <div class="modal-body">
       <div class="form-group">
         <label>Nom complet *</label>
         <input type="text" [(ngModel)]="form.name" placeholder="Nom complet">
@@ -133,6 +133,14 @@
           </select>
           <p class="form-hint-sm">Assigne cet agent à une équipe de collecte.</p>
         </div>
+        <div class="form-group">
+          <label>Poste</label>
+          <select [(ngModel)]="form.poste">
+            <option value="">— Sélectionner un poste —</option>
+            @for (p of postes; track p) { <option [value]="p">{{ p }}</option> }
+          </select>
+          <p class="form-hint-sm">Seul le <strong>Chauffeur</strong> peut démarrer une tournée.</p>
+        </div>
       }
       <div class="form-group">
         <label>{{ isEdit ? 'Nouveau mot de passe (laisser vide pour garder)' : 'Mot de passe *' }}</label>
@@ -145,5 +153,4 @@
         @if (saving) { <span class="btn-spinner"></span> Enregistrement… } @else { Enregistrer }
       </button>
     </div>
-  </div>
-}
+</app-modal>

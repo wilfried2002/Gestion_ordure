@@ -154,7 +154,7 @@
             <span class="alert-dot"></span>
           }
         </div>
-        <a routerLink="/admin/statistiques" class="stat-link">Traiter →</a>
+        <a routerLink="/admin/plaintes" class="stat-link">Traiter →</a>
       </div>
 
     </div>
@@ -199,7 +199,7 @@
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Plaintes récentes</h2>
-        <a routerLink="/admin/statistiques" class="btn btn-outline btn-sm">Voir tout</a>
+        <a routerLink="/admin/plaintes" class="btn btn-outline btn-sm">Voir tout</a>
       </div>
       @if (loading) {
         <div class="loading-state"><div class="spinner"></div><p>Chargement…</p></div>
@@ -212,12 +212,17 @@
         </div>
       } @else {
         <table class="table">
-          <thead><tr><th>Citoyen</th><th>Type</th><th>Statut</th></tr></thead>
+          <thead><tr><th>Sujet du signalement</th><th>Citoyen</th><th>Statut</th></tr></thead>
           <tbody>
             @for (p of stats.plaintesRecentes; track p._id) {
               <tr>
+                <td>
+                  <div class="plainte-type-cell">
+                    <span class="plainte-icon">{{ plainteIcon(p.type) }}</span>
+                    <strong>{{ p.type }}</strong>
+                  </div>
+                </td>
                 <td>{{ p.citoyenId?.name ?? 'Anonyme' }}</td>
-                <td class="td-truncate">{{ p.type }}</td>
                 <td><span [class]="plainteClass(p.statut)">{{ p.statut }}</span></td>
               </tr>
             }
@@ -227,6 +232,56 @@
     </div>
 
   </div>
+
+  <!-- ── Performances du mois ──────────────────────────── -->
+  <div class="section-header" style="margin-top:1.5rem">
+    <h2 class="section-title">Performances du mois</h2>
+    <a routerLink="/admin/primes" class="btn btn-outline btn-sm">Voir tout →</a>
+  </div>
+
+  @if (meilleureEquipe) {
+    <div class="champion-mini">
+      <span class="champion-trophy-mini">🏆</span>
+      <div class="champion-info">
+        <span class="champion-label-mini">Meilleure équipe du mois</span>
+        <strong class="champion-name-mini">{{ meilleureEquipe.equipe.nom }}</strong>
+      </div>
+      <div class="champion-stats-mini">
+        <span>{{ meilleureEquipe.nbTourneesTerminees }} tournées</span>
+        <span>·</span>
+        <span>{{ meilleureEquipe.tauxCompletion }}% complétion</span>
+        <span>·</span>
+        <span class="prime-highlight">{{ montantTotalPrimes.toLocaleString('fr-FR') }} FCFA</span>
+      </div>
+    </div>
+  }
+
+  @if (!perfLoading && topEquipes.length > 0) {
+    <div class="top-equipes-grid">
+      @for (p of topEquipes; track p.equipe._id) {
+        <div class="top-equipe-card" [class.card-gold]="p.rang===1 && p.score>0"
+                                     [class.card-silver]="p.rang===2 && p.score>0"
+                                     [class.card-bronze]="p.rang===3 && p.score>0">
+          <div class="top-equipe-rank">
+            @if (p.rang===1 && p.score>0) { 🥇 }
+            @else if (p.rang===2 && p.score>0) { 🥈 }
+            @else if (p.rang===3 && p.score>0) { 🥉 }
+            @else { #{{ p.rang }} }
+          </div>
+          <div class="top-equipe-info">
+            <strong>{{ p.equipe.nom }}</strong>
+            <span>{{ p.nbTourneesTerminees }} tournées · {{ p.nbCollectes }} collectes</span>
+          </div>
+          <div class="top-equipe-prime">
+            <span class="prime-val">{{ p.montantPrime.toLocaleString('fr-FR') }}</span>
+            <span class="prime-unit">FCFA</span>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (!perfLoading && topEquipes.length === 0) {
+    <p class="no-perf-msg">Aucune performance ce mois-ci. <a routerLink="/admin/equipes">Créer des équipes →</a></p>
+  }
 
   <!-- ── Actions rapides ────────────────────────────────── -->
   <div class="quick-actions">

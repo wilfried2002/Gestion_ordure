@@ -8,11 +8,12 @@ import { EquipeService }   from '../../../core/services/equipe.service';
 import { VehiculeService } from '../../../core/services/vehicule';
 import { ToastService }    from '../../../core/services/toast.service';
 import { ConfirmService }  from '../../../core/services/confirm.service';
+import { ModalComponent }  from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-gestion-tournees',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './gestion-tournees.html',
   styleUrl: './gestion-tournees.scss',
 })

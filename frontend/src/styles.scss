@@ -148,9 +148,18 @@ table tbody td { padding: 0.85rem 1rem; color: var(--text); vertical-align: midd
 .empty-state p { color: var(--text-muted); font-size: 0.9rem; }
 
 /* ─── ANIMATIONS ──────────────────────────────────────────────────────────── */
-@keyframes fadeIn  { from { opacity: 0; }                         to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes spin    { to   { transform: rotate(360deg); } }
+@keyframes fadeIn      { from { opacity: 0; }                                   to { opacity: 1; } }
+@keyframes fadeOut     { to   { opacity: 0; } }
+@keyframes slideUp     { from { transform: translateY(20px); opacity: 0; }     to { transform: translateY(0); opacity: 1; } }
+@keyframes spin        { to   { transform: rotate(360deg); } }
+/* Modale : entrée spring + sortie glissée */
+@keyframes modalIn {
+  from { transform: translate(-50%, calc(-50% + 28px)) scale(.96); opacity: 0; }
+  to   { transform: translate(-50%, -50%)               scale(1);   opacity: 1; }
+}
+@keyframes modalOut {
+  to { transform: translate(-50%, calc(-50% + 16px)) scale(.97); opacity: 0; }
+}
 .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
 .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; flex-shrink: 0; }
 
@@ -176,16 +185,54 @@ table tbody td { padding: 0.85rem 1rem; color: var(--text); vertical-align: midd
 .table tbody tr:last-child { border-bottom: none; }
 .table tbody td { padding: .85rem 1rem; color: var(--text); vertical-align: middle; }
 
-/* ─── MODAL (BACKDROP + CLOSE) ───────────────────────────────────────────── */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(15,36,25,.55); backdrop-filter: blur(3px); z-index: 1000; animation: fadeIn .15s ease; }
-.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001; background: #fff; border-radius: var(--radius-lg); width: calc(100% - 2rem); max-width: 540px; box-shadow: var(--shadow-lg); overflow: hidden; animation: slideUp .2s ease; }
-.modal.modal-lg { max-width: 680px; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
-.modal-header h2 { font-size: 1rem; font-weight: 600; color: var(--text); margin: 0; }
-.modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--text-muted); font-size: 1rem; cursor: pointer; border: none; background: none; }
+/* ─── MODAL (BACKDROP + PANNEAU) ─────────────────────────────────────────── */
+/* Backdrop */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15,36,25,.5); backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn .18s ease forwards;
+}
+.modal-backdrop.modal-closing { animation: fadeOut .22s ease forwards; }
+
+/* Panneau */
+.modal {
+  position: fixed; top: 50%; left: 50%;
+  z-index: 1001; background: #fff;
+  border-radius: var(--radius-lg);
+  width: calc(100% - 2rem); max-width: 540px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.1);
+  overflow: hidden;
+  animation: modalIn .28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.modal.modal-closing { animation: modalOut .22s ease forwards; }
+
+/* Variantes de taille */
+.modal.modal-sm   { max-width: 380px; }
+.modal.modal-lg   { max-width: 700px; }
+.modal.modal-wide { max-width: 740px; }
+.modal.modal-xl   { max-width: 900px; }
+
+/* Contenu */
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+}
+.modal-header h2, .modal-header h3 {
+  font-size: 1rem; font-weight: 600; color: var(--text); margin: 0; flex: 1;
+}
+.modal-close {
+  flex-shrink: 0; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; color: var(--text-muted); cursor: pointer;
+  border: none; background: none; transition: background .15s, color .15s;
+}
 .modal-close:hover { background: var(--bg); color: var(--text); }
 .modal-body { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }
-.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: .75rem; justify-content: flex-end; }
+.modal-footer {
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+  display: flex; gap: .75rem; justify-content: flex-end;
+}
 
 /* ─── SEARCH BAR (avec SVG inline) ───────────────────────────────────────── */
 .search-bar { display: flex; align-items: center; gap: .6rem; background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: .5rem .85rem; margin-bottom: 1.25rem; transition: border-color .15s; }

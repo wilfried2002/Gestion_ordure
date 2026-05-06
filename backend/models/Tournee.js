@@ -23,8 +23,12 @@ const tourneeSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
 }, { timestamps: true });
 
+// Index simple gardé pour compatibilité ascendante
 tourneeSchema.index({ date: 1 });
 tourneeSchema.index({ statut: 1 });
-tourneeSchema.index({ equipeId: 1 });
+// Index composés — couvrent les requêtes fréquentes sans scan collection
+tourneeSchema.index({ createdBy: 1, date: -1 });    // Admin: ses tournées triées par date
+tourneeSchema.index({ equipeId: 1, date: -1 });     // Agent: tournées de ses équipes par date
+tourneeSchema.index({ statut: 1,   date:  1 });     // Planning citoyen: actives + à venir
 
 module.exports = mongoose.model('Tournee', tourneeSchema);

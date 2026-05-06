@@ -7,11 +7,12 @@ import { UserService }    from '../../../core/services/user';
 import { VehiculeService } from '../../../core/services/vehicule';
 import { ToastService }   from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-gestion-equipes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './gestion-equipes.html',
   styleUrl: './gestion-equipes.scss',
 })
@@ -31,7 +32,7 @@ export class GestionEquipes implements OnInit {
   editId: string | null = null;
 
   showMembresModal    = false;
-  equipeSelectionnee: any = null;
+  equipeSelectionnee: any = {};
   membreLoading       = false;
   membreError         = '';
   newMembreId         = '';

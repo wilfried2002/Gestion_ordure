@@ -8,24 +8,13 @@ import express from 'express';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
+const indexHtml         = join(browserDistFolder, 'index.html');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
-
-/**
- * Serve static files from /browser
+ * Serve static files from /browser (JS, CSS, assets, etc.)
  */
 app.use(
   express.static(browserDistFolder, {
@@ -36,14 +25,23 @@ app.use(
 );
 
 /**
- * Handle all other requests by rendering the Angular application.
+ * Toutes les requêtes non-statiques sont traitées par le moteur Angular SSR.
+ * Si Angular ne peut pas rendre la route (guard retourne false, route inconnue…)
+ * on retombe sur le fallback SPA → on renvoie index.html.
+ * Le navigateur reçoit l'app Angular et gère le routing côté client.
  */
 app.use((req, res, next) => {
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then((response) => {
+      if (response) {
+        writeResponseToNodeResponse(response, res);
+      } else {
+        // Filet de sécurité SPA : renvoie index.html pour toute route inconnue.
+        // Le navigateur prend le relai et Angular router fait le reste.
+        res.sendFile(indexHtml);
+      }
+    })
     .catch(next);
 });
 

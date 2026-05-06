@@ -45,5 +45,8 @@ const plainteSchema = new mongoose.Schema({
 
 plainteSchema.index({ citoyenId: 1 });
 plainteSchema.index({ statut: 1 });
+// Index composé — accélère la liste admin (tri par date décroissante, filtre statut)
+plainteSchema.index({ statut: 1, createdAt: -1 });
+plainteSchema.index({ citoyenId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Plainte', plainteSchema);

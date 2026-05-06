@@ -31,7 +31,7 @@ const incidentSchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
-incidentSchema.index({ agentId: 1 });
+incidentSchema.index({ agentId: 1, createdAt: -1 }); // requête principale : mes incidents triés
 incidentSchema.index({ statut: 1 });
 incidentSchema.index({ gravite: 1 });
 

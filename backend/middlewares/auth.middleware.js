@@ -4,7 +4,7 @@ exports.authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "Accès refusé" });
+    return res.status(401).json({ success: false, message: "Accès refusé : authentification requise" });
   }
 
   try {
@@ -12,7 +12,10 @@ exports.authMiddleware = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).json({ message: "Token invalide" });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: "Session expirée. Veuillez vous reconnecter." });
+    }
+    return res.status(401).json({ success: false, message: "Token invalide. Veuillez vous reconnecter." });
   }
 };
 

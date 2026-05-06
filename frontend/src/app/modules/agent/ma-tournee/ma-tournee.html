@@ -1,8 +1,5 @@
 <div class="page-wrapper">
 
-  @if (successMsg) { <div class="alert alert-success">{{ successMsg }}</div> }
-  @if (errorMsg)   { <div class="alert alert-danger">{{ errorMsg }}</div> }
-
   @if (loading) {
     <div class="loading-state"><div class="spinner"></div><p>Chargement de la tournée…</p></div>
   } @else if (!tournee) {
@@ -38,17 +35,37 @@
         <span [class]="statutClass(tournee.statut)">{{ tournee.statut }}</span>
 
         @if (tournee.statut === 'Planifiée') {
-          <button class="btn-action btn-demarrer" (click)="demarrer()" [disabled]="actionLoading">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            {{ actionLoading ? 'Démarrage…' : 'Démarrer la tournée' }}
-          </button>
+          @if (isChauffeur) {
+            <button class="btn-action btn-demarrer" (click)="demarrer()" [disabled]="actionLoading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              {{ actionLoading ? 'Démarrage…' : 'Démarrer la tournée' }}
+            </button>
+          } @else {
+            <span class="chauffeur-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Démarrage réservé au chauffeur désigné
+            </span>
+          }
         }
 
         @if (tournee.statut === 'En cours') {
-          <button class="btn-action btn-terminer" (click)="terminer()" [disabled]="actionLoading">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
-            {{ actionLoading ? 'Finalisation…' : 'Terminer la tournée' }}
-          </button>
+          @if (isChauffeur) {
+            <a [routerLink]="['/agent/navigation', tournee._id]" class="btn-action btn-navigate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+              </svg>
+              Démarrer la navigation
+            </a>
+            <button class="btn-action btn-terminer" (click)="terminer()" [disabled]="actionLoading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ actionLoading ? 'Finalisation…' : 'Terminer la tournée' }}
+            </button>
+          } @else {
+            <span class="chauffeur-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Clôture réservée au chauffeur désigné
+            </span>
+          }
         }
       </div>
     </div>
@@ -117,28 +134,22 @@
 </div>
 
 <!-- Modal validation point -->
-@if (showValiderModal) {
-  <div class="modal-backdrop" (click)="showValiderModal = false"></div>
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Valider la collecte – {{ pointEnCours?.quartierId?.nom }}</h2>
-      <button class="modal-close" (click)="showValiderModal = false">✕</button>
+<app-modal [title]="'Valider la collecte – ' + (pointEnCours?.quartierId?.nom || '')"
+           [visible]="showValiderModal" (close)="showValiderModal = false">
+  <div class="modal-body">
+    <div class="form-group">
+      <label>Volume collecté (m³)</label>
+      <input type="number" [(ngModel)]="validerForm.volume" min="0" placeholder="0">
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Volume collecté (m³)</label>
-        <input type="number" [(ngModel)]="validerForm.volume" min="0" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label>Commentaire (optionnel)</label>
-        <textarea [(ngModel)]="validerForm.commentaire" rows="3" placeholder="Observations, difficultés…"></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="showValiderModal = false">Annuler</button>
-      <button class="btn btn-primary" (click)="confirmerValider()" [disabled]="actionLoading">
-        {{ actionLoading ? 'Validation…' : 'Confirmer la collecte' }}
-      </button>
+    <div class="form-group">
+      <label>Commentaire (optionnel)</label>
+      <textarea [(ngModel)]="validerForm.commentaire" rows="3" placeholder="Observations, difficultés…"></textarea>
     </div>
   </div>
-}
+  <div class="modal-footer">
+    <button class="btn btn-ghost" (click)="showValiderModal = false">Annuler</button>
+    <button class="btn btn-primary" (click)="confirmerValider()" [disabled]="actionLoading">
+      {{ actionLoading ? 'Validation…' : 'Confirmer la collecte' }}
+    </button>
+  </div>
+</app-modal>

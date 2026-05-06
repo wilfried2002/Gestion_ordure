@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const BASE = 'http://localhost:5000/api';
+const BASE = '/api';
 
 @Injectable({ providedIn: 'root' })
 export class AgentTourneeService {

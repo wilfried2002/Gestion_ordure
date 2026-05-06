@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createVehicule, getVehicules, getVehiculeById, updateVehicule, deleteVehicule } = require('../controllers/vehicule.controller');
+const { createVehicule, getVehicules, getVehiculeById, updateVehicule, deleteVehicule, updatePosition } = require('../controllers/vehicule.controller');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth.middleware');
 const { vehiculeRules, idParamRule, validate } = require('../utils/validators');
 
@@ -9,5 +9,8 @@ router.get('/', authMiddleware, getVehicules);
 router.get('/:id', authMiddleware, idParamRule, validate, getVehiculeById);
 router.put('/:id', authMiddleware, roleMiddleware(['ADMIN']), [...idParamRule, ...vehiculeRules], validate, updateVehicule);
 router.delete('/:id', authMiddleware, roleMiddleware(['ADMIN']), idParamRule, validate, deleteVehicule);
+
+// Tracking GPS — appelé par le chauffeur (AGENT) ou l'app mobile
+router.patch('/:id/position', authMiddleware, updatePosition);
 
 module.exports = router;

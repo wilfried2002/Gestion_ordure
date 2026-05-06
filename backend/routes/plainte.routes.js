@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const {
   createPlainte,
   getPlaintes,
@@ -9,9 +9,11 @@ const {
   deletePlainte,
 } = require('../controllers/plainte.controller');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth.middleware');
-const { plainteRules, idParamRule, validate } = require('../utils/validators');
+const { idParamRule, validate }          = require('../utils/validators');
+const upload                             = require('../middlewares/upload.middleware');
 
-router.post('/', authMiddleware, plainteRules, validate, createPlainte);
+// POST avec multer (multipart/form-data) – jusqu'à 3 photos
+router.post('/', authMiddleware, upload.array('photos', 3), createPlainte);
 router.get('/', authMiddleware, roleMiddleware(['ADMIN']), getPlaintes);
 router.get('/mes-plaintes', authMiddleware, getMesPlaintes);
 router.get('/:id', authMiddleware, idParamRule, validate, getPlainteById);

@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AgentTourneeService } from '../../../core/services/agent-tournee.service';
+import { ConfirmService }      from '../../../core/services/confirm.service';
+import { ToastService }        from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-ma-tournee',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent, RouterLink],
   templateUrl: './ma-tournee.html',
   styleUrl: './ma-tournee.scss',
 })
@@ -18,8 +21,6 @@ export class MaTournee implements OnInit {
   points: any[] = [];
   loading = true;
   actionLoading = false;
-  errorMsg = '';
-  successMsg = '';
 
   // Modale validation point
   showValiderModal = false;
@@ -27,9 +28,11 @@ export class MaTournee implements OnInit {
   validerForm = { volume: 0, commentaire: '' };
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private svc: AgentTourneeService,
+    private route:       ActivatedRoute,
+    private router:      Router,
+    private svc:         AgentTourneeService,
+    private confirmSvc:  ConfirmService,
+    private toast:       ToastService,
   ) {}
 
   ngOnInit() {
@@ -80,37 +83,40 @@ export class MaTournee implements OnInit {
       next: r => {
         this.tournee = r.data;
         this.actionLoading = false;
-        this.successMsg = 'Tournée démarrée ! Les points de collecte sont prêts.';
+        this.toast.success('Tournée démarrée !', 'Les points de collecte sont prêts.');
         this.loadPoints();
-        setTimeout(() => this.successMsg = '', 4000);
       },
       error: (e: any) => {
         this.actionLoading = false;
-        this.errorMsg = e?.error?.message ?? 'Erreur lors du démarrage.';
-        setTimeout(() => this.errorMsg = '', 4000);
+        this.toast.error('Erreur', e?.error?.message ?? 'Erreur lors du démarrage.');
       }
     });
   }
 
-  terminer() {
+  async terminer() {
     const nonCollectes = this.points.filter(p => p.statut !== 'Collecté').length;
-    const msg = nonCollectes > 0
-      ? `${nonCollectes} point(s) non encore collecté(s). Terminer quand même ?`
-      : 'Confirmer la fin de la tournée ?';
-    if (!confirm(msg)) return;
+    const ok = await this.confirmSvc.open({
+      title:        'Terminer la tournée',
+      message:      nonCollectes > 0
+        ? `${nonCollectes} point(s) non encore collecté(s). Voulez-vous tout de même terminer la tournée ?`
+        : 'Confirmer la fin de la tournée ? Cette action est irréversible.',
+      confirmLabel: 'Oui, terminer',
+      cancelLabel:  'Continuer la tournée',
+      danger:       nonCollectes > 0,
+    });
+    if (!ok) return;
 
     this.actionLoading = true;
     this.svc.terminer(this.tourneeId).subscribe({
       next: r => {
         this.tournee = r.data;
         this.actionLoading = false;
-        this.successMsg = 'Tournée terminée avec succès !';
-        setTimeout(() => { this.successMsg = ''; this.router.navigate(['/agent/dashboard']); }, 2000);
+        this.toast.success('Tournée terminée !', 'La tournée a été clôturée avec succès.');
+        setTimeout(() => this.router.navigate(['/agent/dashboard']), 2000);
       },
       error: (e: any) => {
         this.actionLoading = false;
-        this.errorMsg = e?.error?.message ?? 'Erreur lors de la fin de tournée.';
-        setTimeout(() => this.errorMsg = '', 4000);
+        this.toast.error('Erreur', e?.error?.message ?? 'Erreur lors de la fin de tournée.');
       }
     });
   }
@@ -128,16 +134,22 @@ export class MaTournee implements OnInit {
       next: () => {
         this.actionLoading = false;
         this.showValiderModal = false;
-        this.successMsg = `Point "${this.pointEnCours.quartierId?.nom}" validé !`;
+        this.toast.success('Point validé !', `Collecte de "${this.pointEnCours.quartierId?.nom}" enregistrée.`);
         this.loadPoints();
-        setTimeout(() => this.successMsg = '', 3000);
       },
       error: (e: any) => {
         this.actionLoading = false;
-        this.errorMsg = e?.error?.message ?? 'Erreur validation.';
-        setTimeout(() => this.errorMsg = '', 3000);
+        this.toast.error('Erreur', e?.error?.message ?? 'Erreur validation.');
       }
     });
+  }
+
+  /** Vrai si l'utilisateur connecté a le poste CHAUFFEUR */
+  get isChauffeur(): boolean {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') ?? '{}');
+      return u?.poste === 'CHAUFFEUR';
+    } catch { return false; }
   }
 
   get nbCollectes() { return this.points.filter(p => p.statut === 'Collecté').length; }

@@ -1,0 +1,158 @@
+<div class="page-wrapper">
+
+  <!-- ── En-tête ─────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes Primes</h1>
+      <p class="page-subtitle">Suivi de vos gains et de l'historique des décaissements de votre équipe</p>
+    </div>
+  </div>
+
+  <!-- ── Résumé financier ─────────────────────────────────────── -->
+  <div class="finance-grid">
+    <div class="finance-card finance-paid">
+      <div class="finance-icon">💰</div>
+      <div>
+        <span class="finance-val">{{ formatMontant(totalGagne) }}</span>
+        <span class="finance-lbl">Total décaissé</span>
+      </div>
+    </div>
+    <div class="finance-card finance-pending">
+      <div class="finance-icon">⏳</div>
+      <div>
+        <span class="finance-val">{{ formatMontant(totalEnAttente) }}</span>
+        <span class="finance-lbl">En attente</span>
+      </div>
+    </div>
+    @if (monEquipe) {
+      <div class="finance-card finance-team">
+        <div class="finance-icon">👥</div>
+        <div>
+          <span class="finance-val">{{ monEquipe.nom }}</span>
+          <span class="finance-lbl">Mon équipe</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ── Performance du mois en cours ────────────────────────── -->
+  @if (maPerformance) {
+    <div class="perf-card">
+      <div class="perf-header">
+        <h2>Performance de l'équipe — {{ moisNoms[mois] }} {{ annee }}</h2>
+        @if (maPerformance.badge) {
+          <span class="perf-badge" [class.badge-gold]="maPerformance.rang === 1">
+            @if (maPerformance.rang === 1) { 🏆 }
+            @else if (maPerformance.rang === 2) { 🥈 }
+            @else if (maPerformance.rang === 3) { 🥉 }
+            {{ maPerformance.badge }}
+          </span>
+        }
+      </div>
+      <div class="perf-stats">
+        <div class="perf-stat">
+          <span class="perf-num">{{ maPerformance.nbTourneesTerminees }}</span>
+          <span class="perf-lbl">Tournées terminées</span>
+        </div>
+        <div class="perf-stat">
+          <span class="perf-num">{{ maPerformance.nbCollectes }}</span>
+          <span class="perf-lbl">Collectes effectuées</span>
+        </div>
+        <div class="perf-stat">
+          <span class="perf-num">{{ maPerformance.tauxCompletion }}%</span>
+          <span class="perf-lbl">Taux de complétion</span>
+        </div>
+        <div class="perf-stat">
+          <span class="perf-num">{{ maPerformance.volumeTotal }} m³</span>
+          <span class="perf-lbl">Volume collecté</span>
+        </div>
+        <div class="perf-stat perf-stat-prime">
+          <span class="perf-num prime-color">{{ formatMontant(maPerformance.montantPrime) }}</span>
+          <span class="perf-lbl">Prime générée ce mois</span>
+        </div>
+        <div class="perf-stat">
+          <span class="perf-num note-color">{{ maPerformance.note }}/5</span>
+          <span class="perf-lbl">Note de performance</span>
+        </div>
+      </div>
+      <div class="perf-rank">Classement : <strong>{{ maPerformance.rang }}ᵉ équipe</strong></div>
+    </div>
+  } @else if (loadingPerf) {
+    <div class="loading-inline"><div class="spinner-sm"></div> Chargement de la performance…</div>
+  }
+
+  <!-- ── Détail des gains (comment le montant est calculé) ────── -->
+  @if (maPerformance && maPerformance.montantPrime > 0) {
+    <div class="gains-detail">
+      <h3>Détail des gains ce mois</h3>
+      <div class="gains-rows">
+        <div class="gains-row">
+          <span class="gains-icon">🚛</span>
+          <span class="gains-desc">{{ maPerformance.nbTourneesTerminees }} tournée(s) terminée(s)</span>
+          <span class="gains-arrow">→</span>
+          <span class="gains-val">{{ formatMontant(maPerformance.nbTourneesTerminees * (maPerformance.montantPrime / (maPerformance.nbTourneesTerminees || 1) / 1)) }}</span>
+        </div>
+        <div class="gains-row">
+          <span class="gains-icon">✅</span>
+          <span class="gains-desc">{{ maPerformance.nbCollectes }} collecte(s) effectuée(s)</span>
+          <span class="gains-arrow">→</span>
+          <span class="gains-val">Inclus dans la prime</span>
+        </div>
+        <div class="gains-row gains-total">
+          <span class="gains-icon">💎</span>
+          <span class="gains-desc">Total prime générée</span>
+          <span class="gains-arrow">→</span>
+          <span class="gains-val">{{ formatMontant(maPerformance.montantPrime) }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Historique des décaissements ────────────────────────── -->
+  <div class="section-title">Historique des décaissements</div>
+
+  @if (loading) {
+    <div class="loading-inline"><div class="spinner-sm"></div> Chargement…</div>
+  } @else if (decaissements.length === 0) {
+    <div class="empty-state">
+      <span style="font-size:2rem">📋</span>
+      <p>Aucun décaissement enregistré pour votre équipe.</p>
+    </div>
+  } @else {
+    <div class="dec-list">
+      @for (d of decaissements; track d._id) {
+        <div class="dec-row">
+          <div class="dec-month">
+            <span class="dec-mois">{{ moisNoms[d.mois] }}</span>
+            <span class="dec-annee">{{ d.annee }}</span>
+          </div>
+          <div class="dec-equipe">
+            <span class="dec-nom">{{ d.equipeId?.nom ?? '—' }}</span>
+          </div>
+          <div class="dec-montant">
+            <span>{{ formatMontant(d.montant) }}</span>
+          </div>
+          <div class="dec-statut">
+            <span class="badge" [class]="statutClass(d.statut)">
+              {{ statutIcon(d.statut) }} {{ d.statut }}
+            </span>
+          </div>
+          <div class="dec-date">
+            @if (d.statut === 'Décaissé') {
+              <span class="dec-date-val">Payé le {{ formatDate(d.decaisseLe) }}</span>
+              @if (d.decaissePar?.name) {
+                <span class="dec-by">par {{ d.decaissePar.name }}</span>
+              }
+            } @else {
+              <span class="dec-date-val">Créé le {{ formatDate(d.createdAt) }}</span>
+            }
+          </div>
+          @if (d.note) {
+            <div class="dec-note">{{ d.note }}</div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>
