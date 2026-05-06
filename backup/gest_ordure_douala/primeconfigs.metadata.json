@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"createdBy":{"$numberInt":"1"}},"name":"createdBy_1","unique":true}],"uuid":"9fc2445b8b984a2ba5ea9f913362614a","collectionName":"primeconfigs","type":"collection"}
